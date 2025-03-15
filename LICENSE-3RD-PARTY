@@ -1,0 +1,15 @@
+
+Lists of 13 third-party dependencies.
+     (Apache Software License, Version 2.0) (GNU Lesser GPL, Version 3) jSerialComm (com.fazecast:jSerialComm:2.10.4 - http://fazecast.github.io/jSerialComm/)
+     (The Apache License, Version 2.0) j2mod (com.ghgande:j2mod:3.2.1 - https://github.com/steveohara/j2mod)
+     (Apache License, Version 2.0) org.osgi:org.osgi.namespace.extender (org.osgi:org.osgi.namespace.extender:1.0.1 - http://www.osgi.org/)
+     (Apache License, Version 2.0) org.osgi:org.osgi.namespace.implementation (org.osgi:org.osgi.namespace.implementation:1.0.0 - http://www.osgi.org/)
+     (Apache-2.0) org.osgi:org.osgi.service.cm (org.osgi:org.osgi.service.cm:1.6.1 - https://docs.osgi.org/)
+     (Apache-2.0) org.osgi:org.osgi.service.component (org.osgi:org.osgi.service.component:1.5.1 - https://docs.osgi.org/)
+     (Apache-2.0) org.osgi:org.osgi.service.component.annotations (org.osgi:org.osgi.service.component.annotations:1.5.1 - https://docs.osgi.org/)
+     (Apache-2.0) org.osgi:org.osgi.service.metatype.annotations (org.osgi:org.osgi.service.metatype.annotations:1.4.1 - https://docs.osgi.org/)
+     (Apache License, Version 2.0) org.osgi:org.osgi.util.function (org.osgi:org.osgi.util.function:1.0.0 - http://www.osgi.org/)
+     (Apache License, Version 2.0) org.osgi:org.osgi.util.promise (org.osgi:org.osgi.util.promise:1.0.0 - http://www.osgi.org/)
+     (Apache-2.0) org.osgi:osgi.annotation (org.osgi:osgi.annotation:8.0.1 - https://docs.osgi.org/)
+     (MIT License) SLF4J API Module (org.slf4j:slf4j-api:2.0.9 - http://www.slf4j.org)
+     (MIT License) SLF4J Simple Binding (org.slf4j:slf4j-simple:1.7.25 - http://www.slf4j.org)
