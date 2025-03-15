@@ -21,7 +21,6 @@
  *
  */
 
-
 package de.poulter.openems.edge.meter.bgetech.ds100;
 
 import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.INVERT_IF_TRUE;
