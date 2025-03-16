@@ -182,7 +182,13 @@ public class MeterBgeTechDS100Impl extends AbstractOpenemsModbusComponent implem
             // total active and reactive power sum
             new FC3ReadRegistersTask(0x010E, Priority.LOW,
                 
-                // wtf ... they mixed names ... :-( ...  production is consumption and vice versa                
+                // wtf ... this has a strange point of view. For OpenEMS sum a grid meter with
+                // positive ACTIVE_POWER is producing energy towards the sum although it is
+                // actually consuming it from the net. So OpenEMS expects the 
+                // ACTIVE_PRODUCTION_ENERGY to increase on positive ACTIVE_POWER and
+                // ACTIVE_CONSUMPTION_ENERGY on negative ACTIVE_POWER, which is contrary to
+                // the meters naming.
+                    
                 m(ChannelMappings.TOTAL_FORWARD_ACTIVE_ENERGY.channelId(invert),     new SignedDoublewordElement(0x010E), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x0110, 0x0117),
                 m(ChannelMappings.TOTAL_REVERSE_ACTIVE_ENERGY.channelId(invert),     new SignedDoublewordElement(0x0118), SCALE_FACTOR_1),
@@ -190,7 +196,6 @@ public class MeterBgeTechDS100Impl extends AbstractOpenemsModbusComponent implem
                 m(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY,                   new SignedDoublewordElement(0x0122), SCALE_FACTOR_1),                
                 new DummyRegisterElement(0x0124, 0x012B),
                 
-                // not sure, I swapped these now too ... but??
                 m(ChannelMappings.TOTAL_FORWARD_REACTIVE_ENERGY.channelId(invert),   new SignedDoublewordElement(0x012C), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x012E, 0x0135),
                 m(ChannelMappings.TOTAL_REVERSE_REACTIVE_ENERGY.channelId(invert),   new SignedDoublewordElement(0x0136), SCALE_FACTOR_1),
