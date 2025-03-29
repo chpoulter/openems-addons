@@ -258,7 +258,7 @@
             <Private-Package>de.poulter.openems.*</Private-Package>
 
             <Bundle-SymbolicName>de.poulter.openems.edge.controller.para14a</Bundle-SymbolicName>
-            <Bundle-Version>1.0.0</Bundle-Version>
+            <Bundle-Version>${project.version}</Bundle-Version>
             <Bundle-Name>${project.name}</Bundle-Name>
             <Bundle-Category>osgi</Bundle-Category>
             <Bundle-Description>${project.description}</Bundle-Description>

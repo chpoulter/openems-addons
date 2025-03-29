@@ -32,7 +32,7 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 @interface Config {
 
     @AttributeDefinition(name = "Component-ID", description = "Unique id of this component")
-    String id() default "ctrlParagraph14aEnWG0";
+    String id() default "ctrlParagraph14a0";
 
     @AttributeDefinition(name = "Alias", description = "Human-readable name of this component; defaults to component-id")
     String alias() default "";
@@ -47,16 +47,16 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
     RelaisMode relaisMode() default RelaisMode.FNN2bit1StbV1StbE;
 
     @AttributeDefinition(name = "Digital Input Relais 1", description = "Input channel for relais E1.")
-    String inputRelais1() default "io0/DigitalInput1";
+    String inputRelais1() default "io0/InputOutput0";
 
     @AttributeDefinition(name = "Digital Input Relais 2", description = "Input channel for relais E2.")
-    String inputRelais2() default "io0/DigitalInput2";
+    String inputRelais2() default "io0/InputOutput1";
 
     @AttributeDefinition(name = "Digital Input Relais 3", description = "Input channel for relais E3.")
-    String inputRelais3() default "io0/DigitalInput3";
+    String inputRelais3() default "io0/InputOutput2";
 
     @AttributeDefinition(name = "Digital Input Relais 4", description = "Input channel for relais E4.")
-    String inputRelais4() default "io0/DigitalInput4";
+    String inputRelais4() default "io0/InputOutput3";
 
     @AttributeDefinition(name = "Grid meter", description = "The grid meter used for calculations.")
     String gridmeter_id() default "meter0";
