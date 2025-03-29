@@ -1,7 +1,7 @@
 /*
  *   OpenEMS Meter B+G E-Tech DS100 bundle
- *   
- *   Written by Christian Poulter.   
+ *
+ *   Written by Christian Poulter
  *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
  *
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *   
+ *
  *   SPDX-License-Identifier: AGPL-3.0-or-later
  *
  */
@@ -37,18 +37,18 @@ public class FloatWordElement extends AbstractSingleWordElement<FloatWordElement
     public FloatWordElement(int address) {
         super(OpenemsType.FLOAT, address);
     }
-    
+
     @Override
     protected FloatWordElement self() {
         return this;
     }
-    
+
     @Override
     protected Float byteBufferToValue(ByteBuffer buff) {
         Short s = buff.getShort(0);
         return s.floatValue();
     }
-    
+
     @Override
     protected void valueToByteBuffer(ByteBuffer buff, Float value) {
         Short s = TypeUtils.getAsType(OpenemsType.SHORT, value);

@@ -1,7 +1,7 @@
 /*
  *   OpenEMS Meter B+G E-Tech DS100 bundle
- *   
- *   Written by Christian Poulter.   
+ *
+ *   Written by Christian Poulter
  *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
  *
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *   
+ *
  *   SPDX-License-Identifier: AGPL-3.0-or-later
  *
  */
@@ -54,7 +54,7 @@ public interface MeterBgeTechDS100 extends ElectricityMeter, OpenemsComponent, M
         FREQUENCY_L1(Doc.of(OpenemsType.INTEGER).unit(Unit.MILLIHERTZ).persistencePriority(PersistencePriority.HIGH)),
         FREQUENCY_L2(Doc.of(OpenemsType.INTEGER).unit(Unit.MILLIHERTZ).persistencePriority(PersistencePriority.HIGH)),
         FREQUENCY_L3(Doc.of(OpenemsType.INTEGER).unit(Unit.MILLIHERTZ).persistencePriority(PersistencePriority.HIGH)),
-        
+
         // power factor
         POWER_FACTOR_L1(Doc.of(OpenemsType.FLOAT).unit(Unit.NONE).persistencePriority(PersistencePriority.HIGH)),
         POWER_FACTOR_L2(Doc.of(OpenemsType.FLOAT).unit(Unit.NONE).persistencePriority(PersistencePriority.HIGH)),
@@ -66,25 +66,25 @@ public interface MeterBgeTechDS100 extends ElectricityMeter, OpenemsComponent, M
         ACTIVE_TOTAL_ENERGY_L1(Doc.of(OpenemsType.LONG).unit(Unit.CUMULATED_WATT_HOURS).persistencePriority(PersistencePriority.LOW)),
         ACTIVE_TOTAL_ENERGY_L2(Doc.of(OpenemsType.LONG).unit(Unit.CUMULATED_WATT_HOURS).persistencePriority(PersistencePriority.LOW)),
         ACTIVE_TOTAL_ENERGY_L3(Doc.of(OpenemsType.LONG).unit(Unit.CUMULATED_WATT_HOURS).persistencePriority(PersistencePriority.LOW)),
-        
+
         // total reactive energy
         REACTIVE_TOTAL_ENERGY   (Doc.of(OpenemsType.LONG).unit(Unit.VOLT_AMPERE_REACTIVE_HOURS).persistencePriority(PersistencePriority.LOW)),
         REACTIVE_TOTAL_ENERGY_L1(Doc.of(OpenemsType.LONG).unit(Unit.VOLT_AMPERE_REACTIVE_HOURS).persistencePriority(PersistencePriority.LOW)),
         REACTIVE_TOTAL_ENERGY_L2(Doc.of(OpenemsType.LONG).unit(Unit.VOLT_AMPERE_REACTIVE_HOURS).persistencePriority(PersistencePriority.LOW)),
         REACTIVE_TOTAL_ENERGY_L3(Doc.of(OpenemsType.LONG).unit(Unit.VOLT_AMPERE_REACTIVE_HOURS).persistencePriority(PersistencePriority.LOW)),
-        
+
         // consumption reactive energy
         REACTIVE_CONSUMPTION_ENERGY   (Doc.of(OpenemsType.LONG).unit(Unit.VOLT_AMPERE_REACTIVE_HOURS).persistencePriority(PersistencePriority.LOW)),
         REACTIVE_CONSUMPTION_ENERGY_L1(Doc.of(OpenemsType.LONG).unit(Unit.VOLT_AMPERE_REACTIVE_HOURS).persistencePriority(PersistencePriority.LOW)),
         REACTIVE_CONSUMPTION_ENERGY_L2(Doc.of(OpenemsType.LONG).unit(Unit.VOLT_AMPERE_REACTIVE_HOURS).persistencePriority(PersistencePriority.LOW)),
-        REACTIVE_CONSUMPTION_ENERGY_L3(Doc.of(OpenemsType.LONG).unit(Unit.VOLT_AMPERE_REACTIVE_HOURS).persistencePriority(PersistencePriority.LOW)),        
-        
+        REACTIVE_CONSUMPTION_ENERGY_L3(Doc.of(OpenemsType.LONG).unit(Unit.VOLT_AMPERE_REACTIVE_HOURS).persistencePriority(PersistencePriority.LOW)),
+
         // production reactive energy
         REACTIVE_PRODUCTION_ENERGY   (Doc.of(OpenemsType.LONG).unit(Unit.VOLT_AMPERE_REACTIVE_HOURS).persistencePriority(PersistencePriority.LOW)),
         REACTIVE_PRODUCTION_ENERGY_L1(Doc.of(OpenemsType.LONG).unit(Unit.VOLT_AMPERE_REACTIVE_HOURS).persistencePriority(PersistencePriority.LOW)),
         REACTIVE_PRODUCTION_ENERGY_L2(Doc.of(OpenemsType.LONG).unit(Unit.VOLT_AMPERE_REACTIVE_HOURS).persistencePriority(PersistencePriority.LOW)),
-        REACTIVE_PRODUCTION_ENERGY_L3(Doc.of(OpenemsType.LONG).unit(Unit.VOLT_AMPERE_REACTIVE_HOURS).persistencePriority(PersistencePriority.LOW)),     
-        
+        REACTIVE_PRODUCTION_ENERGY_L3(Doc.of(OpenemsType.LONG).unit(Unit.VOLT_AMPERE_REACTIVE_HOURS).persistencePriority(PersistencePriority.LOW)),
+
         ;
 
         private final Doc doc;

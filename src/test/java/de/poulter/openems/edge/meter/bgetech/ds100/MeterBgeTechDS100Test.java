@@ -1,7 +1,7 @@
 /*
  *   OpenEMS Meter B+G E-Tech DS100 bundle
- *   
- *   Written by Christian Poulter.   
+ *
+ *   Written by Christian Poulter
  *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
  *
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *   
+ *
  *   SPDX-License-Identifier: AGPL-3.0-or-later
  *
  */
@@ -34,6 +34,7 @@ import io.openems.edge.common.test.DummyConfigurationAdmin;
 
 public class MeterBgeTechDS100Test {
 
+    // TODO: improve this test
     @Test
     public void test() throws Exception {
     	new ComponentTest(new MeterBgeTechDS100Impl())

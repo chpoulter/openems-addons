@@ -1,7 +1,7 @@
 /*
  *   OpenEMS Meter B+G E-Tech DS100 bundle
- *   
- *   Written by Christian Poulter.   
+ *
+ *   Written by Christian Poulter
  *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
  *
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *   
+ *
  *   SPDX-License-Identifier: AGPL-3.0-or-later
  *
  */
@@ -70,15 +70,15 @@ import io.openems.edge.meter.api.ElectricityMeter;
 public class MeterBgeTechDS100Impl extends AbstractOpenemsModbusComponent implements 
     MeterBgeTechDS100, ElectricityMeter, ModbusComponent, OpenemsComponent, ModbusSlave
 {
-    
+
     private static final String MODBUS_SETTER_REFERENCE = "Modbus";
-    
+
     @Reference
     private ConfigurationAdmin cm;
-    
+
     private MeterType meterType = MeterType.PRODUCTION;    
     private boolean invert = false;
-    
+
     public MeterBgeTechDS100Impl() {
         super(
             OpenemsComponent.ChannelId.values(),
@@ -110,7 +110,7 @@ public class MeterBgeTechDS100Impl extends AbstractOpenemsModbusComponent implem
             config.modbus_id()
         );
     }
-    
+
     @Override
     @Deactivate
     protected void deactivate() {
@@ -119,7 +119,7 @@ public class MeterBgeTechDS100Impl extends AbstractOpenemsModbusComponent implem
         meterType = MeterType.PRODUCTION;
         invert = false;
     }
-    
+
     @Override
     public MeterType getMeterType() {
         return meterType;
@@ -129,7 +129,7 @@ public class MeterBgeTechDS100Impl extends AbstractOpenemsModbusComponent implem
     protected ModbusProtocol defineModbusProtocol() {
         ModbusProtocol modbusProtocol = new ModbusProtocol(this,
             new FC3ReadRegistersTask(0x0400, Priority.HIGH,
-                
+
                 // voltage
                 m(ElectricityMeter.ChannelId.VOLTAGE_L1,          new UnsignedDoublewordElement(0x0400)),
                 m(ElectricityMeter.ChannelId.VOLTAGE_L2,          new UnsignedDoublewordElement(0x0402)),
@@ -158,13 +158,13 @@ public class MeterBgeTechDS100Impl extends AbstractOpenemsModbusComponent implem
                 m(MeterBgeTechDS100.ChannelId.APPARENT_POWER_L2,  new UnsignedDoublewordElement(0x0424)),
                 m(MeterBgeTechDS100.ChannelId.APPARENT_POWER_L3,  new UnsignedDoublewordElement(0x0426)),
                 m(MeterBgeTechDS100.ChannelId.APPARENT_POWER,     new UnsignedDoublewordElement(0x0428)),
-                
+
                 // reactive power
                 m(ElectricityMeter.ChannelId.REACTIVE_POWER_L1,   new SignedDoublewordElement(0x042A), INVERT_IF_TRUE(invert)),
                 m(ElectricityMeter.ChannelId.REACTIVE_POWER_L2,   new SignedDoublewordElement(0x042C), INVERT_IF_TRUE(invert)),
                 m(ElectricityMeter.ChannelId.REACTIVE_POWER_L3,   new SignedDoublewordElement(0x042E), INVERT_IF_TRUE(invert)),
                 m(ElectricityMeter.ChannelId.REACTIVE_POWER,      new SignedDoublewordElement(0x0430), INVERT_IF_TRUE(invert)),
-                
+
                 // frequency
                 m(MeterBgeTechDS100.ChannelId.FREQUENCY_L1,       new UnsignedWordElement(0x0432), SCALE_FACTOR_2),
                 m(MeterBgeTechDS100.ChannelId.FREQUENCY_L2,       new UnsignedWordElement(0x0433), SCALE_FACTOR_2),
@@ -178,77 +178,77 @@ public class MeterBgeTechDS100Impl extends AbstractOpenemsModbusComponent implem
                 m(MeterBgeTechDS100.ChannelId.POWER_FACTOR,       new FloatWordElement(0x0439), SCALE_FACTOR_MINUS_3)
 
             ),
-            
+
             // total active and reactive power sum
             new FC3ReadRegistersTask(0x010E, Priority.LOW,
-                
+
                 // wtf ... this has a strange point of view. For OpenEMS sum a grid meter with
                 // positive ACTIVE_POWER is producing energy towards the sum although it is
                 // actually consuming it from the net. So OpenEMS expects the 
                 // ACTIVE_PRODUCTION_ENERGY to increase on positive ACTIVE_POWER and
                 // ACTIVE_CONSUMPTION_ENERGY on negative ACTIVE_POWER, which is contrary to
                 // the meters naming.
-                    
+
                 m(ChannelMappings.TOTAL_FORWARD_ACTIVE_ENERGY.channelId(invert),     new SignedDoublewordElement(0x010E), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x0110, 0x0117),
                 m(ChannelMappings.TOTAL_REVERSE_ACTIVE_ENERGY.channelId(invert),     new SignedDoublewordElement(0x0118), SCALE_FACTOR_1),
-                new DummyRegisterElement(0x011A, 0x0121),                 
-                m(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY,                   new SignedDoublewordElement(0x0122), SCALE_FACTOR_1),                
+                new DummyRegisterElement(0x011A, 0x0121),
+                m(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY,                   new SignedDoublewordElement(0x0122), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x0124, 0x012B),
-                
+
                 m(ChannelMappings.TOTAL_FORWARD_REACTIVE_ENERGY.channelId(invert),   new SignedDoublewordElement(0x012C), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x012E, 0x0135),
                 m(ChannelMappings.TOTAL_REVERSE_REACTIVE_ENERGY.channelId(invert),   new SignedDoublewordElement(0x0136), SCALE_FACTOR_1),
-                new DummyRegisterElement(0x0138, 0x013F), 
+                new DummyRegisterElement(0x0138, 0x013F),
                 m(MeterBgeTechDS100.ChannelId.REACTIVE_TOTAL_ENERGY,                 new SignedDoublewordElement(0x0140), SCALE_FACTOR_1)
             ),
-            
+
             // total active and reactive power L1
-            new FC3ReadRegistersTask(0x0500, Priority.LOW,                
+            new FC3ReadRegistersTask(0x0500, Priority.LOW,
                 m(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY_L1,                new SignedDoublewordElement(0x0500), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x0502, 0x0509),
                 m(ChannelMappings.A_PHASE_FORWARD_ACTIVE_ENERGY.channelId(invert),   new UnsignedDoublewordElement(0x050A), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x050C, 0x0513),
                 m(ChannelMappings.A_PHASE_REVERSE_ACTIVE_ENERGY.channelId(invert),   new UnsignedDoublewordElement(0x0514), SCALE_FACTOR_1),
-                
-                new DummyRegisterElement(0x0516, 0x051D),                
+
+                new DummyRegisterElement(0x0516, 0x051D),
                 m(MeterBgeTechDS100.ChannelId.REACTIVE_TOTAL_ENERGY_L1,              new SignedDoublewordElement(0x051E), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x0520, 0x0527),
                 m(ChannelMappings.A_PHASE_FORWARD_REACTIVE_ENERGY.channelId(invert), new SignedDoublewordElement(0x0528), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x052A, 0x0531), 
-                m(ChannelMappings.A_PHASE_REVERSE_REACTIVE_ENERGY.channelId(invert), new SignedDoublewordElement(0x0532), SCALE_FACTOR_1)                
+                m(ChannelMappings.A_PHASE_REVERSE_REACTIVE_ENERGY.channelId(invert), new SignedDoublewordElement(0x0532), SCALE_FACTOR_1)
             ),
-            
+
             // total active and reactive power L2
-            new FC3ReadRegistersTask(0x0564, Priority.LOW,                
+            new FC3ReadRegistersTask(0x0564, Priority.LOW,
                 m(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY_L2,                new SignedDoublewordElement(0x0564), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x0566, 0x056D),
                 m(ChannelMappings.B_PHASE_FORWARD_ACTIVE_ENERGY.channelId(invert),   new UnsignedDoublewordElement(0x056E), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x0570, 0x0577),
                 m(ChannelMappings.B_PHASE_REVERSE_ACTIVE_ENERGY.channelId(invert),   new UnsignedDoublewordElement(0x0578), SCALE_FACTOR_1),
-                
+
                 new DummyRegisterElement(0x057A, 0x0581),                
                 m(MeterBgeTechDS100.ChannelId.REACTIVE_TOTAL_ENERGY_L2,              new SignedDoublewordElement(0x0582), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x0584, 0x058B),
                 m(ChannelMappings.B_PHASE_FORWARD_REACTIVE_ENERGY.channelId(invert), new SignedDoublewordElement(0x058C), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x058E, 0x0595), 
-                m(ChannelMappings.B_PHASE_REVERSE_REACTIVE_ENERGY.channelId(invert), new SignedDoublewordElement(0x0596), SCALE_FACTOR_1)               
+                m(ChannelMappings.B_PHASE_REVERSE_REACTIVE_ENERGY.channelId(invert), new SignedDoublewordElement(0x0596), SCALE_FACTOR_1)
             ),
-            
+
             // total active and reactive power L3
-            new FC3ReadRegistersTask(0x05C8, Priority.LOW,                
+            new FC3ReadRegistersTask(0x05C8, Priority.LOW,
                 m(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY_L3,                new SignedDoublewordElement(0x05C8), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x05CA, 0x05D1),
                 m(ChannelMappings.C_PHASE_FORWARD_ACTIVE_ENERGY.channelId(invert),   new UnsignedDoublewordElement(0x05D2), SCALE_FACTOR_1),
-                new DummyRegisterElement(0x05D4, 0x05DB),                
+                new DummyRegisterElement(0x05D4, 0x05DB),
                 m(ChannelMappings.C_PHASE_REVERSE_ACTIVE_ENERGY.channelId(invert),   new UnsignedDoublewordElement(0x05DC), SCALE_FACTOR_1),
-                
+
                 new DummyRegisterElement(0x05DE, 0x05E5),
                 m(MeterBgeTechDS100.ChannelId.REACTIVE_TOTAL_ENERGY_L3,              new SignedDoublewordElement(0x05E6), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x05E8, 0x05EF),
                 m(ChannelMappings.C_PHASE_FORWARD_REACTIVE_ENERGY.channelId(invert), new SignedDoublewordElement(0x05F0), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x05F2, 0x05F9), 
-                m(ChannelMappings.C_PHASE_REVERSE_REACTIVE_ENERGY.channelId(invert), new SignedDoublewordElement(0x05FA), SCALE_FACTOR_1)                
+                m(ChannelMappings.C_PHASE_REVERSE_REACTIVE_ENERGY.channelId(invert), new SignedDoublewordElement(0x05FA), SCALE_FACTOR_1)
             )
 
         );
@@ -265,45 +265,44 @@ public class MeterBgeTechDS100Impl extends AbstractOpenemsModbusComponent implem
     }
 
     @Override
-    public ModbusSlaveTable getModbusSlaveTable(AccessMode accessMode) {   
+    public ModbusSlaveTable getModbusSlaveTable(AccessMode accessMode) {
         return new ModbusSlaveTable(
             OpenemsComponent.getModbusSlaveNatureTable(accessMode),
             ElectricityMeter.getModbusSlaveNatureTable(accessMode)
-        );       
-        
+        );
+
     }
-	
-    
+
     public LongReadChannel getActiveTotalEnergyChannel() {
         return this.channel(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY);
     }
-    
+
     public LongReadChannel getActiveTotalEnergyL1Channel() {
         return this.channel(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY);
     }
-    
+
     public LongReadChannel getActiveTotalEnergyL2Channel() {
         return this.channel(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY);
     }
-    
+
     public LongReadChannel getActiveTotalEnergyL3Channel() {
         return this.channel(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY);
     }
-    
+
     public Value<Long> getActiveTotalEnergy() {
         return this.getActiveTotalEnergyChannel().value();
     }
-    
+
     public Value<Long> getActiveTotalEnergyL1() {
         return this.getActiveTotalEnergyL1Channel().value();
     }
-    
+
     public Value<Long> getActiveTotalEnergyL2() {
         return this.getActiveTotalEnergyL2Channel().value();
     }
-    
+
     public Value<Long> getActiveTotalEnergyL3() {
         return this.getActiveTotalEnergyL3Channel().value();
-    }    
+    }
 
 }

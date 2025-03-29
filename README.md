@@ -26,4 +26,4 @@ The OpenEMS Edge Meter B+G E-TECH DS100 Bundle is released under the GNU AFFERO 
 
 It makes use of third party libraries, for more information check the LICENSE-3RD-PARTY file.
 
-It is intended to be run in an OpenEMS instance, licenses can be found at [https://github.com/OpenEMS/openems/blob/develop/LICENSE-EPL-2.0](https://github.com/OpenEMS/openems/blob/develop/LICENSE-EPL-2.0 "https://github.com/OpenEMS/openems/blob/develop/LICENSE-EPL-2.0")
+It is intended to be run in an [OpenEMS instance](https://github.com/OpenEMS/openems "OpenEMS instance"), licenses can be found at [https://github.com/OpenEMS/openems/blob/develop/LICENSE-EPL-2.0](https://github.com/OpenEMS/openems/blob/develop/LICENSE-EPL-2.0 "https://github.com/OpenEMS/openems/blob/develop/LICENSE-EPL-2.0")
