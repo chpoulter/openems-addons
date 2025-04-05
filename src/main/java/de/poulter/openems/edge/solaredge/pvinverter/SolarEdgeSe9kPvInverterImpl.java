@@ -23,8 +23,6 @@
 
 package de.poulter.openems.edge.solaredge.pvinverter;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 
@@ -267,7 +265,7 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
         );
     }
 
-    DiffTimeApply<Float> diffTimeApplyEpcDynamicActivePowerLimit = new DiffTimeApply<>(0.1d) {
+    DiffTimeApply<Float> diffTimeApplyEpcDynamicActivePowerLimit = new DiffTimeApply<>(0.5d) {
         @Override
         public void accept(Float value) throws OpenemsNamedException {
             _setEpcDynamicActivePowerLimit(value);
@@ -275,7 +273,7 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
         }
     };
 
-    DiffTimeApply<Float> diffTimeApplyEpcDynamicReactivePowerLimit = new DiffTimeApply<>(0.1d) {
+    DiffTimeApply<Float> diffTimeApplyEpcDynamicReactivePowerLimit = new DiffTimeApply<>(0.5d) {
         @Override
         public void accept(Float value) throws OpenemsNamedException {
             _setEpcDynamicReactivePowerLimit(value);
@@ -283,7 +281,7 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
         }
     };
 
-    DiffTimeApply<Float> diffTimeApplyaEpcDynamicCosPhiRef = new DiffTimeApply<>(0.001d) {
+    DiffTimeApply<Float> diffTimeApplyaEpcDynamicCosPhiRef = new DiffTimeApply<>(0.01d) {
         @Override
         public void accept(Float value) throws OpenemsNamedException {
             _setEpcDynamicCosPhiRef(value);
