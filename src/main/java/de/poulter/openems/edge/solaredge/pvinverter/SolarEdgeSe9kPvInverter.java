@@ -35,6 +35,7 @@ import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.channel.FloatReadChannel;
 import io.openems.edge.common.channel.FloatWriteChannel;
 import io.openems.edge.common.channel.IntegerReadChannel;
+import io.openems.edge.common.channel.LongReadChannel;
 import io.openems.edge.common.channel.StateChannel;
 import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.OpenemsComponent;
@@ -64,10 +65,12 @@ public interface SolarEdgeSe9kPvInverter extends SunSpecPvInverter, ManagedSymme
         EPC_COSPHI_Q_PREF              (Doc.of(OpenemsType.FLOAT)  .accessMode(AccessMode.READ_ONLY) .unit(Unit.NONE)                .persistencePriority(PersistencePriority.LOW)),
         EPC_ACTIVE_POWER_LIMIT         (Doc.of(OpenemsType.FLOAT)  .accessMode(AccessMode.READ_ONLY) .unit(Unit.WATT)                .persistencePriority(PersistencePriority.LOW)),
         EPC_REACTIVE_POWER_LIMIT       (Doc.of(OpenemsType.FLOAT)  .accessMode(AccessMode.READ_ONLY) .unit(Unit.VOLT_AMPERE_REACTIVE).persistencePriority(PersistencePriority.LOW)),
+        EPC_COMMAND_TIMEOUT            (Doc.of(OpenemsType.LONG)   .accessMode(AccessMode.READ_ONLY) .unit(Unit.SECONDS)             .persistencePriority(PersistencePriority.LOW)),
         EPC_DYNAMIC_ACTIVE_POWER_LIMIT (Doc.of(OpenemsType.FLOAT)  .accessMode(AccessMode.READ_WRITE).unit(Unit.PERCENT)             .persistencePriority(PersistencePriority.HIGH)),
         EPC_DYNAMIC_REACTIVE_POWER_REF (Doc.of(OpenemsType.FLOAT)  .accessMode(AccessMode.READ_WRITE).unit(Unit.PERCENT)             .persistencePriority(PersistencePriority.LOW)),
         EPC_DYNAMIC_COSPHI_REF         (Doc.of(OpenemsType.FLOAT)  .accessMode(AccessMode.READ_WRITE).unit(Unit.NONE)                .persistencePriority(PersistencePriority.LOW)),
 
+        OVERRIDE_ACTIVE_POWER_LIMIT    (Doc.of(OpenemsType.FLOAT)  .accessMode(AccessMode.READ_WRITE).unit(Unit.PERCENT)             .persistencePriority(PersistencePriority.HIGH)),
         ;
 
         private final Doc doc;
@@ -125,6 +128,10 @@ public interface SolarEdgeSe9kPvInverter extends SunSpecPvInverter, ManagedSymme
         return getEpcDynamicActivePowerLimitChannel().value();
     }
 
+    public default void _setEpcDynamicActivePowerLimit(Float value) {
+        getEpcDynamicActivePowerLimitChannel().setNextValue(value);
+    }
+
     public default void setEpcDynamicActivePowerLimit(Float value) throws OpenemsNamedException {
         getEpcDynamicActivePowerLimitChannel().setNextWriteValue(value);
     }
@@ -133,12 +140,24 @@ public interface SolarEdgeSe9kPvInverter extends SunSpecPvInverter, ManagedSymme
         return channel(ChannelId.EPC_DYNAMIC_REACTIVE_POWER_REF);
     }
 
+    public default Value<Float> getEpcDynamicReactivePowerLimit() {
+        return getEpcDynamicReactivePowerLimitChannel().value();
+    }
+
+    public default void _setEpcDynamicReactivePowerLimit(Float value) {
+        getEpcDynamicReactivePowerLimitChannel().setNextValue(value);
+    }
+
     public default void setEpcDynamicReactivePowerLimit(Float value) throws OpenemsNamedException {
         getEpcDynamicReactivePowerLimitChannel().setNextWriteValue(value);
     }
 
     public default FloatWriteChannel getEpcDynamicCosPhiRefChannel() {
         return channel(ChannelId.EPC_DYNAMIC_COSPHI_REF);
+    }
+
+    public default void _setEpcDynamicCosPhiRef(Float value) {
+        getEpcDynamicCosPhiRefChannel().setNextValue(value);
     }
 
     public default void setEpcDynamicCosPhiRef(Float value) throws OpenemsNamedException {
@@ -152,4 +171,37 @@ public interface SolarEdgeSe9kPvInverter extends SunSpecPvInverter, ManagedSymme
     public default Value<Float> getEpcMaxActivePower() {
         return getEpcMaxActivePowerChannel().value();
     }
+
+    public default FloatReadChannel getEpcMaxReactivePowerChannel() {
+        return channel(ChannelId.EPC_MAX_REACTIVE_POWER);
+    }
+
+    public default Value<Float> getEpcMaxReactivePower() {
+        return getEpcMaxReactivePowerChannel().value();
+    }
+
+    public default FloatWriteChannel getOverrideActivePowerChannel() {
+        return channel(ChannelId.OVERRIDE_ACTIVE_POWER_LIMIT);
+    }
+
+    public default Value<Float> getOverrideActivePower() {
+        return getOverrideActivePowerChannel().value();
+    }
+
+    public default void _setOverrideActivePower(Float value) {
+        getOverrideActivePowerChannel().setNextValue(value);
+    }
+
+    public default void setOverrideActivePower(Float value) throws OpenemsNamedException {
+        getOverrideActivePowerChannel().setNextWriteValue(value);
+    }
+
+    public default LongReadChannel getEpcCommandTimeoutChannel() {
+        return channel(ChannelId.EPC_COMMAND_TIMEOUT);
+    }
+
+    public default Value<Long> getEpcCommandTimeout() {
+        return getEpcCommandTimeoutChannel().value();
+    }
+
 }

@@ -60,6 +60,7 @@ import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;
 import io.openems.edge.bridge.modbus.api.element.WordOrder;
 import io.openems.edge.bridge.modbus.sunspec.DefaultSunSpecModel;
 import io.openems.edge.bridge.modbus.sunspec.SunSpecModel;
+import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
@@ -80,7 +81,7 @@ import io.openems.edge.pvinverter.sunspec.SunSpecPvInverter;
     configurationPolicy = ConfigurationPolicy.REQUIRE,
     property = { "type=PRODUCTION" }
 )
-@EventTopics({ EdgeEventConstants.TOPIC_CYCLE_EXECUTE_WRITE })
+@EventTopics({ EdgeEventConstants.TOPIC_CYCLE_EXECUTE_WRITE, EdgeEventConstants.TOPIC_CYCLE_AFTER_CONTROLLERS })
 public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter implements
     SolarEdgeSe9kPvInverter, SunSpecPvInverter, ManagedSymmetricPvInverter, ElectricityMeter, ModbusComponent, OpenemsComponent, EventHandler, ModbusSlave
 {
@@ -91,20 +92,21 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
     private static final int READ_FROM_MODBUS_BLOCK = 1;
     private static final Map<SunSpecModel, Priority> ACTIVE_MODELS = ImmutableMap.<SunSpecModel, Priority>builder()
         .put(DefaultSunSpecModel.S_1, Priority.LOW)
-        .put(DefaultSunSpecModel.S_101, Priority.LOW)
-        .put(DefaultSunSpecModel.S_102, Priority.LOW)
-        .put(DefaultSunSpecModel.S_103, Priority.LOW)
+        .put(DefaultSunSpecModel.S_101, Priority.HIGH)
+        .put(DefaultSunSpecModel.S_102, Priority.HIGH)
+        .put(DefaultSunSpecModel.S_103, Priority.HIGH)
         .build();
 
     // for limit handling
-    private Instant lastHandleActivePowerLimit = Instant.MIN;
-    private WeightedMean weightedMean = new WeightedMean(15d, 15d, 15d, 15d, 20d, 30d, 40d, 50d, 75d, 100d);
+    private WeightedMean activePowerLimitWeightedMean = new WeightedMean(15d, 15d, 15d, 15d, 20d, 30d, 40d, 50d, 75d, 100d);
 
     @Reference
     private ConfigurationAdmin cm;
 
     private boolean readOnly;
     private boolean debugMode;
+    private float reactivePowerRef;
+    private float cosPhiRef;
 
     @Override
     @Reference(policy = ReferencePolicy.STATIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.MANDATORY)
@@ -122,6 +124,15 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
             SunSpecPvInverter.ChannelId.values(),
             SolarEdgeSe9kPvInverter.ChannelId.values()
         );
+
+        // map channels
+        this.<Channel<Float>>channel(SolarEdgeSe9kPvInverter.ChannelId.EPC_MAX_ACTIVE_POWER).onSetNextValue(nextValue -> {
+            nextValue.ifPresent(value -> _setMaxActivePower(value.intValue()));
+        });
+
+        this.<Channel<Float>>channel(SolarEdgeSe9kPvInverter.ChannelId.EPC_MAX_REACTIVE_POWER).onSetNextValue(nextValue -> {
+            nextValue.ifPresent(value -> _setMaxReactivePower(value.intValue()));
+        });
     }
 
     @Activate
@@ -134,6 +145,8 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
 
         this.readOnly = config.readOnly();
         this.debugMode = config.debugMode();
+        this.reactivePowerRef = config.reactivePowerRef();
+        this.cosPhiRef = config.cosPhiRef();
     }
 
     @Override
@@ -153,9 +166,21 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
         switch (event.getTopic()) {
             case EdgeEventConstants.TOPIC_CYCLE_EXECUTE_WRITE:
                 processTopicCycleExecuteWrite();
+                break;
+
+            case EdgeEventConstants.TOPIC_CYCLE_AFTER_CONTROLLERS:
+                processTopicCycleAfterControllers();
+                break;
 
             default:
                 break;
+        }
+    }
+
+    private void processTopicCycleAfterControllers() {
+        Optional<Float> activePowerLimitValue = this.getOverrideActivePowerChannel().getNextWriteValueAndReset();
+        if (activePowerLimitValue.isPresent()) {
+            _setOverrideActivePower(activePowerLimitValue.get());
         }
     }
 
@@ -171,7 +196,7 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
         _setReadOnlyModePvLimitFailed(false);
 
         try {
-            handleActivePowerLimit(activePowerLimitValue);
+            applyEpcDynamicLimits(activePowerLimitValue);
             _setPvLimitFailed(false);
 
         } catch (OpenemsNamedException ex) {
@@ -207,7 +232,7 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
                 m(SolarEdgeSe9kPvInverter.ChannelId.PC_ADVANCED_PWR_CONTROL_EN, new SignedDoublewordElement(0xF142).wordOrder(WordOrder.LSWMSW)),
                 m(SolarEdgeSe9kPvInverter.ChannelId.PC_FRT_EN, new SignedDoublewordElement(0xF144).wordOrder(WordOrder.LSWMSW))
             ),
-            TaskBuilder.buildFC3ReadRegistersTask(Priority.HIGH,
+            TaskBuilder.buildFC3ReadRegistersTask(
                 m(SolarEdgeSe9kPvInverter.ChannelId.EPC_ENABLE_DPC, new UnsignedWordElement(0xF300)),
                 new DummyRegisterElement(0xF301, 0xF303),
                 m(SolarEdgeSe9kPvInverter.ChannelId.EPC_MAX_ACTIVE_POWER, new FloatDoublewordElement(0xF304).wordOrder(WordOrder.LSWMSW)),
@@ -216,7 +241,8 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
                 m(SolarEdgeSe9kPvInverter.ChannelId.EPC_COSPHI_Q_PREF, new UnsignedWordElement(0xF309)),
                 new DummyRegisterElement(0xF30A, 0xF30B),
                 m(SolarEdgeSe9kPvInverter.ChannelId.EPC_ACTIVE_POWER_LIMIT, new FloatDoublewordElement(0xF30C).wordOrder(WordOrder.LSWMSW)),
-                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_REACTIVE_POWER_LIMIT, new FloatDoublewordElement(0xF30E).wordOrder(WordOrder.LSWMSW))
+                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_REACTIVE_POWER_LIMIT, new FloatDoublewordElement(0xF30E).wordOrder(WordOrder.LSWMSW)),
+                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_COMMAND_TIMEOUT, new UnsignedDoublewordElement(0xF310).wordOrder(WordOrder.LSWMSW))
             )
         );
 
@@ -241,26 +267,59 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
         );
     }
 
-    public void handleActivePowerLimit(Optional<Integer> activePowerLimitOpt) throws OpenemsNamedException {
+    DiffTimeApply<Float> diffTimeApplyEpcDynamicActivePowerLimit = new DiffTimeApply<>(0.1d) {
+        @Override
+        public void accept(Float value) throws OpenemsNamedException {
+            _setEpcDynamicActivePowerLimit(value);
+            setEpcDynamicActivePowerLimit(value);
+        }
+    };
 
-        // only run every 10 seconds
-        if (Duration.between(lastHandleActivePowerLimit, Instant.now()).getSeconds() < 10) {
+    DiffTimeApply<Float> diffTimeApplyEpcDynamicReactivePowerLimit = new DiffTimeApply<>(0.1d) {
+        @Override
+        public void accept(Float value) throws OpenemsNamedException {
+            _setEpcDynamicReactivePowerLimit(value);
+            setEpcDynamicReactivePowerLimit(value);
+        }
+    };
+
+    DiffTimeApply<Float> diffTimeApplyaEpcDynamicCosPhiRef = new DiffTimeApply<>(0.001d) {
+        @Override
+        public void accept(Float value) throws OpenemsNamedException {
+            _setEpcDynamicCosPhiRef(value);
+            setEpcDynamicCosPhiRef(value);
+        }
+    };
+
+    public void applyEpcDynamicLimits(Optional<Integer> activePowerLimitValue) throws OpenemsNamedException {
+        applyEpcDynamicActivePowerLimit(activePowerLimitValue);
+        applyEpcDynamicReactivePowerLimit();
+        applyEpcDynamicCosPhiRef();
+    }
+
+    public void applyEpcDynamicActivePowerLimit(Optional<Integer> activePowerLimitValue) throws OpenemsNamedException {
+
+        // apply override
+        Value<Float> overrideActivePowerValue = getOverrideActivePower();
+        float overrideActivePower = overrideActivePowerValue.orElse(-1f);
+        if (overrideActivePower >= 0) {
+            overrideActivePower = TypeUtils.fitWithin(0.0f, 100.0f, overrideActivePower);
+            diffTimeApplyEpcDynamicActivePowerLimit.nextValue(getEpcCommandTimeout().asOptional(), overrideActivePower);
             return;
         }
-        lastHandleActivePowerLimit = Instant.now();
-
-        // check for hardware maximum
-        Value<Float> epcMaxActivePowerValue = getEpcMaxActivePower();
-        if (!epcMaxActivePowerValue.isDefined()) {
-            logWarn(log, getEpcMaxActivePowerChannel().channelId() + " has no value.");
-            return;
-        }
-        double epcMaxActivePower = getEpcMaxActivePower().orElse(0.0f);
 
         // calculate limit
         double epcDynamicActivePowerLimit = 100.0d;
-        if (activePowerLimitOpt.isPresent()) {
-            double activePowerLimit = activePowerLimitOpt.get();
+        if (activePowerLimitValue.isPresent()) {
+
+            // get hardware max
+            Value<Float> epcMaxActivePowerValue = getEpcMaxActivePower();
+            if (!epcMaxActivePowerValue.isDefined()) {
+                logWarn(log, getEpcMaxActivePowerChannel().channelId() + " has no value.");
+            }
+
+            float activePowerLimit = activePowerLimitValue.get();
+            float epcMaxActivePower = epcMaxActivePowerValue.orElse(activePowerLimit);
             epcDynamicActivePowerLimit = activePowerLimit * 100 / epcMaxActivePower;
         }
         logDebug("epcDynamicActivePowerLimit " + epcDynamicActivePowerLimit);
@@ -270,14 +329,23 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
         logDebug("epcDynamicActivePowerLimit " + epcDynamicActivePowerLimit);
 
         // apply mean
-        weightedMean.addValue(epcDynamicActivePowerLimit);
-        epcDynamicActivePowerLimit = weightedMean.getMean();
+        activePowerLimitWeightedMean.addValue(epcDynamicActivePowerLimit);
+        epcDynamicActivePowerLimit = activePowerLimitWeightedMean.getMean();
         logDebug("epcDynamicActivePowerLimit " + epcDynamicActivePowerLimit);
 
-        setEpcDynamicActivePowerLimit((float) epcDynamicActivePowerLimit);
-        setEpcDynamicReactivePowerLimit(100f);
-        setEpcDynamicCosPhiRef(1f);
+        diffTimeApplyEpcDynamicActivePowerLimit.nextValue(getEpcCommandTimeout().asOptional(), (float)epcDynamicActivePowerLimit);
     }
+
+    private void applyEpcDynamicReactivePowerLimit() throws OpenemsNamedException {
+        float epcDynamicReactivePowerLimit = TypeUtils.fitWithin(0.0f, 100.0f, reactivePowerRef);
+        diffTimeApplyEpcDynamicReactivePowerLimit.nextValue(getEpcCommandTimeout().asOptional(), epcDynamicReactivePowerLimit);
+    }
+
+    private void applyEpcDynamicCosPhiRef() throws OpenemsNamedException {
+        float epcDynamicCosPhiRef = TypeUtils.fitWithin(-1.0f, 1.0f, cosPhiRef);
+        diffTimeApplyaEpcDynamicCosPhiRef.nextValue(getEpcCommandTimeout().asOptional(), epcDynamicCosPhiRef);
+    }
+
 
     public void logDebug(String message) {
         if (debugMode) {
