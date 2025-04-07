@@ -1,5 +1,5 @@
 /*
- *   OpenEMS Meter Paragraph 14a Controller
+ *   OpenEMS Paragraph 14a Controller
  *
  *   Written by Christian Poulter.
  *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
@@ -23,20 +23,18 @@
 
 package de.poulter.openems.edge.controller.para14a;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Optional;
 
+import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.component.annotations.ReferencePolicyOption;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 import org.osgi.service.event.propertytypes.EventTopics;
@@ -44,10 +42,12 @@ import org.osgi.service.metatype.annotations.Designate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.openems.common.channel.Level;
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
-import io.openems.common.exceptions.OpenemsException;
 import io.openems.common.types.ChannelAddress;
 import io.openems.edge.common.channel.BooleanReadChannel;
+import io.openems.edge.common.channel.IntegerWriteChannel;
+import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.AbstractOpenemsComponent;
 import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
@@ -65,7 +65,8 @@ import io.openems.edge.pvinverter.api.ManagedSymmetricPvInverter;
     configurationPolicy = ConfigurationPolicy.REQUIRE
 )
 @EventTopics({
-    EdgeEventConstants.TOPIC_CYCLE_BEFORE_CONTROLLERS
+    EdgeEventConstants.TOPIC_CYCLE_BEFORE_CONTROLLERS,
+    EdgeEventConstants.TOPIC_CYCLE_AFTER_CONTROLLERS
 })
 public class ControllerParagraph14aImpl extends AbstractOpenemsComponent 
     implements ControllerParagraph14a, Controller, OpenemsComponent, EventHandler
@@ -73,31 +74,39 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
 
     private static final Logger log = LoggerFactory.getLogger(ControllerParagraph14aImpl.class);
 
-    private boolean debugMode;
+    @Reference
+    private ConfigurationAdmin cm;
 
     @Reference
     private ComponentManager componentManager;
 
+    // Relais
     private RelaisMode relaisMode;
     private ChannelAddress inputRelais1;
     private ChannelAddress inputRelais2;
     private ChannelAddress inputRelais3;
     private ChannelAddress inputRelais4;
 
-    private ProductionManagment production = ProductionManagment.OFF;
-    private ConsumptionManagment consumption = ConsumptionManagment.OFF;
-
     // grid meter
+    @Reference(policy = ReferencePolicy.STATIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.MANDATORY)
     private ElectricityMeter gridMeter;
 
-    // pv inverters
-    private Map<ManagedSymmetricPvInverter, Integer> pvInverterActivePowerLimits = Collections.emptyMap();
-    private Map<ManagedSymmetricPvInverter, Integer> pvInvertersMaxHardware = Collections.emptyMap();
-    private Integer pvInvertersLastActivePowerLimitSum;
-    private int pvInverterLittleDiffCounts;
+    // pv inverter
+    @Reference(policy = ReferencePolicy.STATIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.MANDATORY)
+    private ManagedSymmetricPvInverter pvInverter;
+    private Optional<Integer> pvInverterActivePowerLimit = Optional.empty();
+    private WeightedMean pvInverterActivePowerLimitMean = new WeightedMean(15d,15d,15d,15d,20d,30d,40d,50d,60d,75d);
 
-    // evcs clusters
-    private List<ManagedEvcsCluster> evcsClusters;
+    // evcs
+    @Reference(policy = ReferencePolicy.STATIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.MANDATORY)
+    private ManagedEvcsCluster evcsCluster;
+    private Optional<Integer> evcsClusterMaximumAllowedPowerToDistribute = Optional.empty();
+    private WeightedMean evcsClusterMaximumAllowedPowerToDistributeMean = new WeightedMean(15d,15d,15d,15d,20d,30d,40d,50d,60d,75d);
+
+    // misc
+    private ProductionManagment production = ProductionManagment.OFF;
+    private ConsumptionManagment consumption = ConsumptionManagment.OFF;
+    private boolean debugMode;
 
     public ControllerParagraph14aImpl() {
         super(
@@ -111,46 +120,30 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
     private void activate(ComponentContext context, Config config) throws OpenemsNamedException {
         super.activate(context, config.id(), config.alias(), config.enabled());
 
-        debugMode = config.debugMode();
+        if (OpenemsComponent.updateReferenceFilter(cm, this.servicePid(), "gridMeter", config.gridMeter_id())) {
+            return;
+        }
+
+        if (OpenemsComponent.updateReferenceFilter(cm, this.servicePid(), "pvInverter", config.pvInverter_id())) {
+            return;
+        }
+
+        if (OpenemsComponent.updateReferenceFilter(cm, this.servicePid(), "evcsCluster", config.evcsCluster_id())) {
+            return;
+        }
 
         inputRelais1 = ChannelAddress.fromString(config.inputRelais1());
         inputRelais2 = ChannelAddress.fromString(config.inputRelais2());
         inputRelais3 = ChannelAddress.fromString(config.inputRelais3());
         inputRelais4 = ChannelAddress.fromString(config.inputRelais4());
 
+        debugMode = config.debugMode();
         relaisMode = config.relaisMode();
+
         production = ProductionManagment.OFF;
         consumption = ConsumptionManagment.OFF;
 
-        gridMeter = componentManager.getComponent(config.gridmeter_id());
-
-        pvInverterActivePowerLimits = new HashMap<>();
-        pvInvertersMaxHardware = new HashMap<>();
-        pvInvertersLastActivePowerLimitSum = null;
-
-        for (int i = 0; i < config.pvInverter_ids().length; i++) {
-            String pvInverter_id = config.pvInverter_ids()[i];
-            String pvInverter_maxActivePower = config.pvInverter_maxActivePower()[i];
-
-            ManagedSymmetricPvInverter pvInverter = componentManager.getComponent(pvInverter_id);
-
-            Integer maxActivePower;
-            try {
-                maxActivePower = Integer.valueOf(pvInverter_maxActivePower);
-            } catch(NumberFormatException ex) {
-                throw new OpenemsException("Could not parse max active power for pvInverter", ex);
-            }
-
-            pvInvertersMaxHardware.put(pvInverter, maxActivePower);
-        }
-
-        evcsClusters = new ArrayList<>();
-        for (int i = 0; i < config.evcs_ids().length; i++) {
-            String evcsCluster_id = config.evcs_ids()[i];
-
-            ManagedEvcsCluster evcsCluster = componentManager.getComponent(evcsCluster_id);
-            evcsClusters.add(evcsCluster);
-        }
+        setRunStatus(Level.INFO);
     }
 
     @Override
@@ -161,12 +154,7 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
         production = ProductionManagment.OFF;
         consumption = ConsumptionManagment.OFF;
 
-        gridMeter = null;
-
-        pvInvertersMaxHardware = Collections.emptyMap();
-        pvInvertersLastActivePowerLimitSum = null;
-
-        evcsClusters = Collections.emptyList();
+        setRunStatus(Level.OK);
     }
 
     @Override
@@ -175,51 +163,37 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
 
         switch (event.getTopic()) {
             case EdgeEventConstants.TOPIC_CYCLE_BEFORE_CONTROLLERS:
+                setRunStatus(Level.OK);
                 mapRelaisInputsToManagementModes();
+                break;
+
+            case EdgeEventConstants.TOPIC_CYCLE_AFTER_CONTROLLERS:
+                checkPvInverterLimit();
+                checkEvcsMaximumAllowedPowerToDistribute();
                 break;
         }
     }
 
     @Override
     public void run() throws OpenemsNamedException {
-        logDebug("new production managment: " + production);
-        logDebug("new consumption managment: " + consumption);
+        logDebug("production managment:  " + production);
+        logDebug("consumption managment: " + consumption);
 
-        // determine sum of pvInverter production
-        int pvInverterSumActivePower = determinePvInverterSumActivePower();
-
-        // calculate pv inverter limits
-        calculatePvInverterLimits(pvInverterSumActivePower);
-
-        // set power limit in every cycle otherwise it gets lost
-        logDebug("pvInverterActivePowerLimits " + pvInverterActivePowerLimits);
-        for (ManagedSymmetricPvInverter pvInverter : pvInverterActivePowerLimits.keySet()) {
-            pvInverter.setActivePowerLimit(pvInverterActivePowerLimits.get(pvInverter));
-        }
-
-        // calc evcs count and power distribution
-        int evcsCount = calcEvcsCount();
-        int evcsClustersAllowedPower = calcAllowedPowerToDistributeOnEvcsClusters(evcsCount, pvInverterSumActivePower);
-        Map<ManagedEvcsCluster, Integer> allowedPowerPerClusters = distributePower(evcsClustersAllowedPower, evcsClusters);
-
-        // set power limit on each evcs cluster
-        for (Entry<ManagedEvcsCluster, Integer> entry : allowedPowerPerClusters.entrySet()) {
-            ManagedEvcsCluster evcsCluster = entry.getKey();
-            Integer allowedPower = entry.getValue();
-
-            evcsCluster.setMaximumAllowedPowerToDistribute(allowedPower);
-        }
-
-        // set channels
-        _setEvcsCount(evcsCount);
-        _setEvcsClustersAllowedPower(evcsClustersAllowedPower);
+        calculatePvInverterActivePowerLimit();
+        calculateEvcsClusterMaximumAllowedPowerToDistribute();
     }
 
-    public void logDebug(String message) {
+
+    private void logDebug(String message) {
         if (debugMode) {
             logInfo(log, message);
         }
     }
+
+    private void setRunStatus(Level level) {
+        channel(Controller.ChannelId.RUN_FAILED).setNextValue(level);
+    }
+
 
     ////////////////////////////////////////////////////////////////////
     //
@@ -234,8 +208,10 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
 
         } catch (IllegalArgumentException | OpenemsNamedException ex) {
             logError(log, "Could not read " + channelAddress + ".");
-            return null;
+            setRunStatus(Level.WARNING);
         }
+
+        return null;
     }
 
     private void mapRelaisInputsToManagementModes() {
@@ -314,6 +290,7 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
 
             default:
                 logWarn(log, "Mode " + relaisMode + " is not supported yet.");
+                setRunStatus(Level.FAULT);
 
             case None:
                 production = ProductionManagment.OFF;
@@ -325,46 +302,93 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
         _setConsumptionManagmentChannel(consumption);
     }
 
+
     ////////////////////////////////////////////////////////////////////
     //
     // PV Inverter
     //
     ////////////////////////////////////////////////////////////////////
 
-    private int determinePvInverterSumActivePower() {
+    private void checkPvInverterLimit() {
 
-        // current production of pv inverters
-        int pvInverterSumActivePower = pvInvertersMaxHardware.keySet().stream()
-            .mapToInt( pvInverter -> pvInverter.getActivePower().orElse(0))
-            .sum();
+        if (pvInverter == null) {
+            logDebug("No pvInverter defined.");
+            setRunStatus(Level.WARNING);
+            return;
+        }
 
-        _setPvInverterSumActivePower(pvInverterSumActivePower);
+        IntegerWriteChannel activePowerLimitChannel = pvInverter.getActivePowerLimitChannel();
+        logDebug("checkPvInverterLimit activePowerLimitChannel "+ activePowerLimitChannel.getNextWriteValue());
 
-        logDebug("pvInverterSumActivePower " + pvInverterSumActivePower);
+        Optional<Integer> activePowerLimit = activePowerLimitChannel
+            .getNextWriteValue()
+            .map( value -> (value < 0) ? null : value )
+            .map( value -> Optional.of(Math.min(value, pvInverterActivePowerLimit.orElse(Integer.MAX_VALUE))))
+            .orElse(pvInverterActivePowerLimit);
 
-        return pvInverterSumActivePower;
+        logDebug("checkPvInverterLimit activePowerLimit "+ activePowerLimit);
+
+        try {
+            if (activePowerLimit.isPresent()) {
+                activePowerLimitChannel.setNextWriteValue(activePowerLimit.get());
+            }
+        } catch (OpenemsNamedException ex) {
+            log.error("Could not set new limit on pv inverter.", ex);
+            setRunStatus(Level.FAULT);
+        }
+
+        logDebug("checkPvInverterLimit activePowerLimitChannel "+ activePowerLimitChannel.getNextWriteValue());
     }
 
-    private void calculatePvInverterLimits(int pvInverterSumActivePower) throws OpenemsNamedException {
+    private void calculatePvInverterActivePowerLimit() throws OpenemsNamedException {
         logDebug("-PvInverter--------");
 
-        int hardwareMax = pvInvertersMaxHardware.values().stream().mapToInt(i -> i.intValue()).sum();
-        _setPvInvertersHardwareMaxActivePower(hardwareMax);
-        logDebug("hardwareMax " + hardwareMax);
+        if (pvInverter == null) {
+            setRunStatus(Level.WARNING);
+            pvInverterActivePowerLimitMean.clear();
+
+            logWarn(log, "No Pv inverter.");
+            logDebug("-------------------");
+
+            return;
+        }
+
+        Value<Integer> pvInverterActivePowerValue = pvInverter.getActivePower();
+        if (!pvInverterActivePowerValue.isDefined()) {
+            setRunStatus(Level.WARNING);
+            pvInverterActivePowerLimitMean.clear();
+
+            logWarn(log, "Pv inverter has no active power defined.");
+            logDebug("-------------------");
+
+            return;
+        }
+        int pvInverterActivePower = pvInverterActivePowerValue.get();
+        _setPvInverterActivePower(pvInverterActivePower);
+        logDebug("pvInverterActivePower " + pvInverterActivePower);
+
+        Value<Integer> pvInverterMaxActivePowerValue = pvInverter.getMaxActivePower();
+        if (!pvInverterMaxActivePowerValue.isDefined()) {
+            setRunStatus(Level.WARNING);
+            pvInverterActivePowerLimitMean.clear();
+
+            logWarn(log, "Pv inverter has no max active power defined.");
+            logDebug("-------------------");
+
+            return;
+        }
+        int pvInverterMaxActivePower = pvInverterMaxActivePowerValue.get();
+        _setPvInverterMaxActivePower(pvInverterMaxActivePower);
+        logDebug("pvInverterMaxActivePower " + pvInverterMaxActivePower);
 
         // no limit, just set hardware max on every pv inverter
         if (ProductionManagment.FULL.equals(production)) {
-            logDebug("No prodction limit required.");
+            pvInverterActivePowerLimitMean.clear();
+            pvInverterActivePowerLimit = Optional.empty();
+            _setPvInverterActivePowerLimit(null);
 
-            pvInverterActivePowerLimits = new HashMap<>();
-            for (Entry<ManagedSymmetricPvInverter, Integer> entry : pvInvertersMaxHardware.entrySet()) {
-                ManagedSymmetricPvInverter pvInverter = entry.getKey();
-                Integer pvInverterHarwareMax = entry.getValue();
-
-                pvInverterActivePowerLimits.put(pvInverter, pvInverterHarwareMax);
-            }
-            pvInvertersLastActivePowerLimitSum = hardwareMax;
-            _setPvInvertersActivePowerLimitSum(pvInvertersLastActivePowerLimitSum);
+            logDebug("No pv inverter prodction limit required.");
+            logDebug("-------------------");
 
             return;
         }
@@ -375,68 +399,24 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
         logDebug("consumption " + consumptionPower + ", production " + productionPower + ", gridActivePower " + gridActivePower);
 
         // max allowed active production on grid meter
-        int pvInvertersActivePowerLimitSum = Math.floorDiv(hardwareMax * production.getFactor(), 100);
-        logDebug("pvInvertersActivePowerLimitSum " + pvInvertersActivePowerLimitSum);
+        int activePowerLimit = Math.floorDiv(pvInverterMaxActivePower * production.getFactor(), 100);
+        logDebug("activePowerLimit " + activePowerLimit);
 
-        pvInvertersActivePowerLimitSum += gridActivePower + pvInverterSumActivePower;
-        logDebug("pvInvertersActivePowerLimitSum " + pvInvertersActivePowerLimitSum);
+        activePowerLimit += gridActivePower + pvInverterActivePower;
+        logDebug("activePowerLimit " + activePowerLimit);
 
-        pvInvertersActivePowerLimitSum = TypeUtils.fitWithin(0, hardwareMax, pvInvertersActivePowerLimitSum);
-        logDebug("pvInvertersActivePowerLimitSum " + pvInvertersActivePowerLimitSum + ", pvInvertersLastActivePowerLimitSum " + pvInvertersLastActivePowerLimitSum);
+        activePowerLimit = TypeUtils.fitWithin(0, pvInverterMaxActivePower, activePowerLimit);
+        logDebug("activePowerLimit " + activePowerLimit);
 
-        if (pvInvertersLastActivePowerLimitSum != null && (pvInvertersActivePowerLimitSum > 100)) {
-            int diff = Math.abs(pvInvertersLastActivePowerLimitSum - pvInvertersActivePowerLimitSum);
-            logDebug("diff " + diff);
+        activePowerLimit = (int) pvInverterActivePowerLimitMean.nextValue(activePowerLimit);
+        logDebug("activePowerLimit " + activePowerLimit);
 
-            // increase in slow steps
-            if (pvInvertersActivePowerLimitSum > pvInvertersLastActivePowerLimitSum) {
-
-                // if change is small -> do nothing
-                if (diff < Math.floorDiv(hardwareMax, 200)) {
-                    pvInverterLittleDiffCounts++;
-
-                    if (pvInverterLittleDiffCounts < 5) {
-                        logDebug("little diff " + diff);
-                        return;
-                    }
-
-                    logDebug("little diff anyway " + diff);
-
-                    pvInvertersActivePowerLimitSum = Math.min(pvInvertersLastActivePowerLimitSum + diff, pvInvertersActivePowerLimitSum);
-                    logDebug("pvInvertersActivePowerLimitSum 1.1 " + pvInvertersActivePowerLimitSum);
-
-                } else {
-                    pvInvertersActivePowerLimitSum = Math.min(pvInvertersLastActivePowerLimitSum + Math.floorDiv(diff, 5), pvInvertersActivePowerLimitSum);
-                    logDebug("pvInvertersActivePowerLimitSum 1.2 " + pvInvertersActivePowerLimitSum);
-                }
-                pvInverterLittleDiffCounts = 0;
-
-            // decrease in steps
-            } else {
-                pvInvertersActivePowerLimitSum = Math.max(pvInvertersLastActivePowerLimitSum - Math.floorDiv(diff, 2), pvInvertersActivePowerLimitSum);
-                logDebug("pvInvertersActivePowerLimitSum 2 " + pvInvertersActivePowerLimitSum);
-            }
-        }
-        pvInvertersLastActivePowerLimitSum = pvInvertersActivePowerLimitSum;
-        _setPvInvertersActivePowerLimitSum(pvInvertersActivePowerLimitSum);
-
-        pvInverterActivePowerLimits = new HashMap<>();
-        for (Entry<ManagedSymmetricPvInverter, Integer> entry : pvInvertersMaxHardware.entrySet()) {
-            ManagedSymmetricPvInverter pvInverter = entry.getKey();
-            int pvInverterHarwareMax = entry.getValue();
-
-            double factor = (hardwareMax == 0) ? 0 : (double)pvInverterHarwareMax / (double)hardwareMax;
-            int pvInvertermaxActivePower = (int) Math.floor((double)pvInvertersActivePowerLimitSum * factor);
-            logDebug("pvInvertermaxActivePower " + pvInvertermaxActivePower);
-
-            pvInvertermaxActivePower = TypeUtils.fitWithin(0, pvInverterHarwareMax, pvInvertermaxActivePower);
-            logDebug("pvInvertermaxActivePower " + pvInvertermaxActivePower);
-
-            pvInverterActivePowerLimits.put(pvInverter, pvInvertermaxActivePower);
-        }
+        pvInverterActivePowerLimit = Optional.of(activePowerLimit);
+        _setPvInverterActivePowerLimit(activePowerLimit);
 
         logDebug("-------------------");
     }
+
 
     ////////////////////////////////////////////////////////////////////
     //
@@ -444,10 +424,33 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
     //
     ////////////////////////////////////////////////////////////////////
 
-    private int calcEvcsCount() {
-        return evcsClusters.stream()
-            .mapToInt( evcsCluster -> evcsCluster.getEvcsCount().orElse(0))
-            .sum();
+    private void checkEvcsMaximumAllowedPowerToDistribute() {
+
+        if (evcsCluster == null) {
+            logDebug("No evcs cluster defined.");
+            setRunStatus(Level.WARNING);
+            return;
+        }
+
+        logDebug("checkEvcsMaximumAllowedPowerToDistribute evcsClusterMaximumAllowedPowerToDistribute "+ evcsClusterMaximumAllowedPowerToDistribute);
+
+        IntegerWriteChannel maximumAllowedPowerToDistributeChannel = evcsCluster.getMaximumAllowedPowerToDistributeChannel();
+
+        int maximumAllowedPowerToDistribute = maximumAllowedPowerToDistributeChannel
+            .getNextWriteValue()
+            .map( value -> value < 0 ? null : value )
+            .map( value -> TypeUtils.fitWithin(0, evcsClusterMaximumAllowedPowerToDistribute.orElse(Integer.MAX_VALUE), value) )
+            .orElse(evcsClusterMaximumAllowedPowerToDistribute.orElse(-1));
+
+        logDebug("checkEvcsMaximumAllowedPowerToDistribute maximumAllowedPowerToDistribute "+ maximumAllowedPowerToDistribute);
+
+        try {
+            maximumAllowedPowerToDistributeChannel.setNextWriteValue(maximumAllowedPowerToDistribute);
+
+        } catch (OpenemsNamedException ex) {
+            log.error("Could not set new maximum allowed power to distribute on evcs cluster.", ex);
+            setRunStatus(Level.FAULT);
+        }
     }
 
     private int determineGleichzeitigkeitsfaktor(int evcs) {
@@ -464,7 +467,32 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
         return 0;
     }
 
-    private int calcAllowedPowerToDistributeOnEvcsClusters(int evcsCount, int pvInverterSumActivePower) {
+    private void calculateEvcsClusterMaximumAllowedPowerToDistribute() {
+
+        logDebug("-EVCS cluster------");
+
+        if (evcsCluster == null) {
+            logDebug("No evcs cluster defined.");
+            setRunStatus(Level.WARNING);
+            return;
+        }
+
+        int evcsCount = evcsCluster.getEvcsCount().orElse(0);
+        _setEvcsCount(evcsCount);
+
+        if (ConsumptionManagment.FULL.equals(consumption)) {
+            logDebug("No evcs cluster maximum allowed power to distribute required.");
+            setRunStatus(Level.WARNING);
+
+            evcsClusterMaximumAllowedPowerToDistribute = Optional.empty();
+            _setEvcsClusterMaximumAllowedPowerToDistribute(null);
+
+            logDebug("-------------------");
+            return;
+        }
+
+        int pvInverterActivePower = pvInverter.getActivePower().orElse(0);
+        logDebug("pvInverterActivePower " + pvInverterActivePower);
 
         int gridActivePower = gridMeter.getActivePower().orElse(0);
         int consumptionPower = (gridActivePower > 0) ? gridActivePower : 0;
@@ -475,66 +503,22 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
         // Anlage 1 BK-622-300 Bundesnetzagentur Abschnitt 4.5 Satz 4
         // Stand 27.11.2023
         int pMin = 4200 + (evcsCount - 1) * determineGleichzeitigkeitsfaktor(evcsCount) * 42;
+        logDebug("pMin " + pMin);
 
-        switch(consumption) {
-            case FULL: return -1;
-            case REDUCED: return pMin + pvInverterSumActivePower;
-            case OFF: return pvInverterSumActivePower;
-            case UNUSED:
-            default: return 0;
-        }
-    }
+        int maximumAllowedPowerToDistribute = switch(consumption) {
+            case REDUCED -> pMin + pvInverterActivePower;
+            case OFF -> pvInverterActivePower;
+            default -> 0;
+        };
+        logDebug("maximumAllowedPowerToDistribute " + maximumAllowedPowerToDistribute);
 
-    private Map<ManagedEvcsCluster, Integer> distributePower(int allowedPowerToDistribute, Collection<ManagedEvcsCluster> evcsClusters) {
-        logDebug("-Evcs--------------");
-        logDebug("allowedPowerToDistribute " + allowedPowerToDistribute);
+        maximumAllowedPowerToDistribute = (int) evcsClusterMaximumAllowedPowerToDistributeMean.nextValue(maximumAllowedPowerToDistribute);
+        logDebug("maximumAllowedPowerToDistribute " + maximumAllowedPowerToDistribute);
 
-        Map<ManagedEvcsCluster, Integer> allowedPowerPerCluster = new HashMap<>();
-
-        // skip distribution in case of OFF or NOLIMIT
-        if (allowedPowerToDistribute < 1) {
-            for (ManagedEvcsCluster cluster : evcsClusters) {
-                allowedPowerPerCluster.put(cluster, allowedPowerToDistribute);
-            }
-
-        // try to distribute allowed max power in a useful way
-        } else {
-
-            int allowedPowerLeft = allowedPowerToDistribute;
-
-            for (ManagedEvcsCluster cluster : evcsClusters) {
-                logDebug("cluster " + cluster.id());
-
-                int clusterActivePower = cluster.getActivePower().orElse(0);
-                int allowedPower = TypeUtils.fitWithin(0, allowedPowerLeft, clusterActivePower);
-                allowedPowerLeft -= allowedPower;
-
-                logDebug("allowedPower " + allowedPower);
-                allowedPowerPerCluster.put(cluster, allowedPower);
-            }
-
-            logDebug("allowedPowerLeft " + allowedPowerLeft);
-            logDebug("allowedPowerPerCluster " + allowedPowerPerCluster);
-
-            if (allowedPowerLeft > 0) {
-                int clusterCount = evcsClusters.size();
-                int additionalPowerPerCluster = (clusterCount == 0) ? 0 : Math.divideExact(allowedPowerLeft, clusterCount);
-
-                for (ManagedEvcsCluster cluster : evcsClusters) {
-                    int allowedPower = allowedPowerPerCluster.get(cluster) + additionalPowerPerCluster;
-
-                    logDebug("allowedPower " + allowedPower);
-
-                    allowedPowerPerCluster.put(cluster, allowedPower);
-                }
-            }
-
-            logDebug("allowedPowerPerCluster " + allowedPowerPerCluster);
-        }
+        evcsClusterMaximumAllowedPowerToDistribute = Optional.of(maximumAllowedPowerToDistribute);
+        _setEvcsClusterMaximumAllowedPowerToDistribute(maximumAllowedPowerToDistribute);
 
         logDebug("-------------------");
-
-        return allowedPowerPerCluster;
     }
 
 }

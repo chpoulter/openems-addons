@@ -1,5 +1,5 @@
 /*
- *   OpenEMS Meter Paragraph 14a Controller
+ *   OpenEMS Paragraph 14a Controller
  *
  *   Written by Christian Poulter.
  *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
@@ -24,10 +24,11 @@
 package de.poulter.openems.edge.controller.para14a;
 
 // Relaissteuerungsverfahren gemäß VDE FNN, hierbei
-// werden 4 Relais benutzt, deren Bedeutung sich
-// je nach Verfahren unterschiedlich sein kann.
+// werden 4 Relais benutzt, deren Bedeutung je nach
+// Belegung unterschiedlich sein kann.
 
 public enum RelaisMode {
+
     None,                          // kein Anschluss
     FNN2bit1StbV,                  // FNN2bit für 1 Verbraucher
     FNN2bit2StbV,                  // FNN2bit für 2 Verbraucher
@@ -37,5 +38,6 @@ public enum RelaisMode {
     DreiRelais1StbE,               // 3 Relais 0%, 30%, 60% für 1 Erzeuger
     VierRelais1StbE,               // 4 Relais 0%, 30%, 60%, 100% für 1 Erzeuger
     Einzelkontakt4StbV             // 4 Relais Einzelkontakte für 4 Verbraucher
+
     ;
 }

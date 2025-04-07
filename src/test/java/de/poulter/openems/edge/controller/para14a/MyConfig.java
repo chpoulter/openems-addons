@@ -1,5 +1,5 @@
 /*
- *   OpenEMS Meter Paragraph 14a Controller
+ *   OpenEMS Paragraph 14a Controller
  *
  *   Written by Christian Poulter.
  *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
@@ -24,7 +24,7 @@
 package de.poulter.openems.edge.controller.para14a;
 
 import io.openems.common.test.AbstractComponentConfig;
-import io.openems.edge.evcs.api.ChargeMode;
+import io.openems.common.utils.ConfigUtils;
 
 @SuppressWarnings("all")
 public class MyConfig extends AbstractComponentConfig implements Config {
@@ -40,10 +40,9 @@ public class MyConfig extends AbstractComponentConfig implements Config {
         private String inputRelaisId2;
         private String inputRelaisId3;
         private String inputRelaisId4;
-        private String gridmeterId;
-        private String[] pvInverterIds = {};
-        private String[] pvInverterMaxActivePower = {};
-        private String[] evcsIds = {};
+        private String gridMeterId;
+        private String pvInverterId;
+        private String evcsClusterId;
 
         private Builder() {
         }
@@ -83,23 +82,18 @@ public class MyConfig extends AbstractComponentConfig implements Config {
             return this;
         }
 
-        public Builder setGridmeterId(String gridmeterId) {
-            this.gridmeterId = gridmeterId;
+        public Builder setGridMeterId(String gridMeterId) {
+            this.gridMeterId = gridMeterId;
             return this;
         }
 
-        public Builder setPvInverterIds(String[] pvInverterIds) {
-            this.pvInverterIds = pvInverterIds;
+        public Builder setPvInverterId(String pvInverterId) {
+            this.pvInverterId = pvInverterId;
             return this;
         }
 
-        public Builder setPvInverterMaxActivePower(String[] pvInverterMaxActivePower) {
-            this.pvInverterMaxActivePower = pvInverterMaxActivePower;
-            return this;
-        }
-
-        public Builder setEvcsIds(String[] evcsIds) {
-            this.evcsIds = evcsIds;
+        public Builder setEvcsClusterId(String evcsClusterId) {
+            this.evcsClusterId = evcsClusterId;
             return this;
         }
 
@@ -144,33 +138,43 @@ public class MyConfig extends AbstractComponentConfig implements Config {
     }
 
     @Override
-    public String[] pvInverter_ids() {
-        return builder.pvInverterIds;
-    }
-
-    @Override
-    public String[] pvInverter_maxActivePower() {
-        return builder.pvInverterMaxActivePower;
-    }
-
-    @Override
     public RelaisMode relaisMode() {
         return builder.relaisMode;
     }
 
     @Override
-    public String[] evcs_ids() {
-        return builder.evcsIds;
-    }
-
-    @Override
-    public String gridmeter_id() {
-        return builder.gridmeterId;
-    }
-
-    @Override
     public boolean debugMode() {
         return builder.debugEnabled;
+    }
+
+    @Override
+    public String gridMeter_id() {
+        return builder.gridMeterId;
+    }
+
+    @Override
+    public String gridMeter_target() {
+        return ConfigUtils.generateReferenceTargetFilter(id(), gridMeter_id());
+    }
+
+    @Override
+    public String pvInverter_id() {
+        return builder.pvInverterId;
+    }
+
+    @Override
+    public String pvInverter_target() {
+        return ConfigUtils.generateReferenceTargetFilter(id(), pvInverter_id());
+    }
+
+    @Override
+    public String evcsCluster_id() {
+        return builder.evcsClusterId;
+    }
+
+    @Override
+    public String evcsCluster_target() {
+        return ConfigUtils.generateReferenceTargetFilter(id(), evcsCluster_id());
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- *   OpenEMS Meter Paragraph 14a Controller
+ *   OpenEMS Paragraph 14a Controller
  *
  *   Written by Christian Poulter.
  *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>

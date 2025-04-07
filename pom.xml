@@ -88,10 +88,19 @@
 
   <dependencies> 
 
+    <!-- misc -->
     <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-lang3</artifactId>
-        <version>3.12.0</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-math3</artifactId>
+      <version>3.6.1</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.12.0</version>
+      <scope>provided</scope>
     </dependency>
 
     <!-- OSGI --> 
@@ -101,7 +110,7 @@
       <version>1.5.1</version>
       <scope>provided</scope>
     </dependency>
-        <dependency>
+    <dependency>
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.service.event</artifactId>
       <version>1.4.1</version>
@@ -117,6 +126,12 @@
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.service.metatype.annotations</artifactId>
       <version>1.4.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.service.cm</artifactId>
+      <version>1.6.1</version>
       <scope>provided</scope>
     </dependency>
 
@@ -191,13 +206,6 @@
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.util.tracker</artifactId>
       <version>1.5.4</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.service.cm</artifactId>
-      <version>1.6.1</version>
       <scope>test</scope>
     </dependency>
 

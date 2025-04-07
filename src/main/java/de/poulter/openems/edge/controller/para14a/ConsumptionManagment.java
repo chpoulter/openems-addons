@@ -1,5 +1,5 @@
 /*
- *   OpenEMS Meter Paragraph 14a Controller
+ *   OpenEMS Paragraph 14a Controller
  *
  *   Written by Christian Poulter.
  *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
@@ -27,10 +27,11 @@ import io.openems.common.types.OptionsEnum;
 
 public enum ConsumptionManagment implements OptionsEnum {
 
-    FULL   (3, "no limit"),  // E2=0, E1=0
-    REDUCED(2, "reduced"),   // E2=0, E1=1
-    UNUSED (1, "unused"),    // E2=1, E1=0
-    OFF    (0, "off")        // E2=1, E1=1
+    FULL   (3, "no limit"),
+    REDUCED(2, "reduced"),
+    UNUSED (1, "unused"),
+    OFF    (0, "off")
+
     ;
 
     private final int value;
@@ -65,11 +66,11 @@ public enum ConsumptionManagment implements OptionsEnum {
     public static ConsumptionManagment getForInputs(Boolean e1, Boolean e2) {
         if (e1 == null || e2 == null) return ConsumptionManagment.OFF;
 
-        if (!e1 && !e2) return ConsumptionManagment.FULL;
-        if (!e1 && e2) return ConsumptionManagment.REDUCED;
-        if (e1 && !e2) return ConsumptionManagment.UNUSED;
-        if (e1 && e2) return ConsumptionManagment.OFF;
+        if (e1) {
+            return e2 ? ConsumptionManagment.OFF : ConsumptionManagment.UNUSED;
 
-        throw new IllegalArgumentException("This should not happen.");
+        } else {
+            return e2 ? ConsumptionManagment.REDUCED : ConsumptionManagment.FULL;
+        }
     }
 }

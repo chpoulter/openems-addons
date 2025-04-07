@@ -1,5 +1,5 @@
 /*
- *   OpenEMS Meter Paragraph 14a Controller
+ *   OpenEMS Paragraph 14a Controller
  *
  *   Written by Christian Poulter.
  *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
@@ -71,12 +71,11 @@ public enum ProductionManagment implements OptionsEnum {
     public static ProductionManagment getForInputs(Boolean e1, Boolean e2) {
         if (e1 == null || e2 == null) return ProductionManagment.OFF;
 
-        if (!e1 && !e2) return ProductionManagment.FULL;
-        if (e1 && !e2) return ProductionManagment.REDUCED30;
-        if (!e1 && e2) return ProductionManagment.REDUCED60;
-        if (e1 && e2) return ProductionManagment.OFF;
-
-        throw new IllegalArgumentException("This should not happen.");
+        if (e1) {
+            return e2 ? ProductionManagment.OFF : ProductionManagment.REDUCED30;
+        } else {
+            return e2 ? ProductionManagment.REDUCED60 : ProductionManagment.FULL;
+        }
     }
 
     public static  ProductionManagment getForInputs(Boolean e1, Boolean e2, Boolean e3) {
@@ -97,7 +96,7 @@ public enum ProductionManagment implements OptionsEnum {
         if (e3) return ProductionManagment.REDUCED60;
         if (e4) return ProductionManagment.FULL;
 
-        throw new IllegalArgumentException("This should not happen.");
+        return ProductionManagment.OFF;
     }
 
 }

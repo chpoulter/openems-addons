@@ -1,5 +1,5 @@
 /*
- *   OpenEMS Meter Paragraph 14a Controller
+ *   OpenEMS Paragraph 14a Controller
  *
  *   Written by Christian Poulter.
  *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
@@ -23,14 +23,11 @@
 
 package de.poulter.openems.edge.controller.para14a;
 
-import static io.openems.common.channel.Unit.WATT;
-import static io.openems.common.channel.Unit.NONE;
-import static io.openems.common.types.OpenemsType.INTEGER;
-
+import io.openems.common.channel.Unit;
+import io.openems.common.types.OpenemsType;
 import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.channel.IntegerReadChannel;
-import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.controller.api.Controller;
 
@@ -40,29 +37,26 @@ public interface ControllerParagraph14a extends Controller, OpenemsComponent{
 
         PRODUCTION_MANAGEMENT(Doc.of(ProductionManagment.values())
             .text("Current production managment mode.")),
-
         CONSUMPTION_MANAGEMENT(Doc.of(ConsumptionManagment.values())
             .text("Current consumption managment mode.")),
 
-        PVINVERTER_SUM_ACTIVE_POWER(Doc.of(INTEGER)
-            .unit(WATT)
-            .text("Sum of active power of all pv inverters.")),
+        PVINVERTER_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER)
+            .unit(Unit.WATT)
+            .text("Active power of the pv inverter")),
+        PVINVERTER_MAX_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER)
+            .unit(Unit.WATT)
+            .text("Maximum active power of pv inverter")),
+        PVINVERTER_ACTIVE_POWER_LIMIT(Doc.of(OpenemsType.INTEGER)
+            .unit(Unit.WATT)
+            .text("Limit for active power of pv inverter")),
 
-        PVINVERTERS_HARDWARE_MAX_ACTIVE_POWER(Doc.of(INTEGER)
-            .unit(WATT)
-            .text("Maximum hardware active power of all pv inverters.")),
-
-        PVINVERTERS_ACTIVE_POWER_LIMIT_SUM(Doc.of(INTEGER)
-            .unit(WATT)
-            .text("Allowed maximum active power for all pv inverters.")),
-
-        EVCS_COUNT(Doc.of(INTEGER)
-            .unit(NONE)
+        EVCS_COUNT(Doc.of(OpenemsType.INTEGER)
+            .unit(Unit.NONE)
             .text("Amount of managed EVCS.")),
+        EVCS_CLUSTER_MAXIMUM_ALLOWED_POWER_TO_DISTRIBUTE(Doc.of(OpenemsType.INTEGER)
+            .unit(Unit.WATT)
+            .text("Allowed power to distribute by EVCS clusters.")),
 
-        EVCS_CLUSTERS_ALLOWED_POWER(Doc.of(INTEGER)
-            .unit(WATT)
-            .text("Allowed power to distribute by EVCS clusters."))
         ;
 
         private final Doc doc;
@@ -75,31 +69,6 @@ public interface ControllerParagraph14a extends Controller, OpenemsComponent{
         public Doc doc() {
             return this.doc;
         }
-    }
-
-    public default IntegerReadChannel getEvcsCountChannel() {
-        return this.channel(ChannelId.EVCS_COUNT);
-    }
-
-    public default Value<Integer> getEvcsCount() {
-        return this.getEvcsCountChannel().value();
-    }
-
-    public default void _setEvcsCount(Integer value) {
-        this.getEvcsCountChannel().setNextValue(value);
-    }
-
-
-    public default IntegerReadChannel getEvcsClustersAllowedPowerChannel() {
-        return this.channel(ChannelId.EVCS_CLUSTERS_ALLOWED_POWER);
-    }
-
-    public default Value<Integer> getEvcsClustersAllowedPower() {
-        return this.getEvcsClustersAllowedPowerChannel().value();
-    }
-
-    public default void _setEvcsClustersAllowedPower(Integer value) {
-        this.getEvcsClustersAllowedPowerChannel().setNextValue(value);
     }
 
 
@@ -129,41 +98,48 @@ public interface ControllerParagraph14a extends Controller, OpenemsComponent{
     }
 
 
-    public default IntegerReadChannel getPvInvertersHardwareMaxActivePowerChannel() {
-        return this.channel(ChannelId.PVINVERTERS_HARDWARE_MAX_ACTIVE_POWER);
+    public default IntegerReadChannel getPvInverterActivePowerChannel() {
+        return this.channel(ChannelId.PVINVERTER_ACTIVE_POWER);
     }
 
-    public default Value<Integer> getPvInvertersHardwareMaxActivePower() {
-        return this.getPvInvertersHardwareMaxActivePowerChannel().value();
-    }
-
-    public default void _setPvInvertersHardwareMaxActivePower(Integer value) {
-        this.getPvInvertersHardwareMaxActivePowerChannel().setNextValue(value);
+    public default void _setPvInverterActivePower(Integer value) {
+        this.getPvInverterActivePowerChannel().setNextValue(value);
     }
 
 
-    public default IntegerReadChannel getPvInvertersActivePowerLimitSumChannel() {
-        return this.channel(ChannelId.PVINVERTERS_ACTIVE_POWER_LIMIT_SUM);
+    public default IntegerReadChannel getPvInverterMaxActivePowerChannel() {
+        return this.channel(ChannelId.PVINVERTER_MAX_ACTIVE_POWER);
     }
 
-    public default Value<Integer> getPvInvertersActivePowerLimitSum() {
-        return this.getPvInvertersActivePowerLimitSumChannel().value();
-    }
- 
-    public default void _setPvInvertersActivePowerLimitSum(Integer value) {
-        this.getPvInvertersActivePowerLimitSumChannel().setNextValue(value);
+    public default void _setPvInverterMaxActivePower(Integer value) {
+        this.getPvInverterMaxActivePowerChannel().setNextValue(value);
     }
 
 
-    public default IntegerReadChannel getPvInverterSumActivePowerChannel() {
-        return this.channel(ChannelId.PVINVERTER_SUM_ACTIVE_POWER);
+    public default IntegerReadChannel getPvInverterActivePowerLimitChannel() {
+        return this.channel(ChannelId.PVINVERTER_ACTIVE_POWER_LIMIT);
     }
 
-    public default Value<Integer> getPvInverterSumActivePower() {
-        return this.getPvInverterSumActivePowerChannel().value();
+    public default void _setPvInverterActivePowerLimit(Integer value) {
+        this.getPvInverterActivePowerLimitChannel().setNextValue(value);
     }
 
-    public default void _setPvInverterSumActivePower(Integer value) {
-        this.getPvInverterSumActivePowerChannel().setNextValue(value);
+
+    public default IntegerReadChannel getEvcsCountChannel() {
+        return this.channel(ChannelId.EVCS_COUNT);
     }
+
+    public default void _setEvcsCount(Integer value) {
+        this.getEvcsCountChannel().setNextValue(value);
+    }
+
+
+    public default IntegerReadChannel getEvcsClusterMaximumAllowedPowerToDistributeChannel() {
+        return this.channel(ChannelId.EVCS_CLUSTER_MAXIMUM_ALLOWED_POWER_TO_DISTRIBUTE);
+    }
+
+    public default void _setEvcsClusterMaximumAllowedPowerToDistribute(Integer value) {
+        this.getEvcsClusterMaximumAllowedPowerToDistributeChannel().setNextValue(value);
+    }
+
 }
