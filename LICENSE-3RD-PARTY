@@ -1,5 +1,5 @@
 
-Lists of 31 third-party dependencies.
+Lists of 32 third-party dependencies.
      (The Apache Software License, Version 2.0) FindBugs-jsr305 (com.google.code.findbugs:jsr305:3.0.2 - http://findbugs.sourceforge.net/)
      (Apache-2.0) Gson (com.google.code.gson:gson:2.12.1 - https://github.com/google/gson)
      (Apache 2.0) error-prone annotations (com.google.errorprone:error_prone_annotations:2.36.0 - https://errorprone.info/error_prone_annotations)
@@ -8,6 +8,7 @@ Lists of 31 third-party dependencies.
      (The Apache Software License, Version 2.0) Guava ListenableFuture only (com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava - https://github.com/google/guava/listenablefuture)
      (Apache License, Version 2.0) J2ObjC Annotations (com.google.j2objc:j2objc-annotations:3.0.0 - https://github.com/google/j2objc/)
      (Apache License, Version 2.0) Apache Commons Lang (org.apache.commons:commons-lang3:3.12.0 - https://commons.apache.org/proper/commons-lang/)
+     (Apache License, Version 2.0) Apache Commons Math (org.apache.commons:commons-math3:3.6.1 - http://commons.apache.org/proper/commons-math/)
      (The Apache License, Version 2.0) org.apiguardian:apiguardian-api (org.apiguardian:apiguardian-api:1.1.2 - https://github.com/apiguardian-team/apiguardian)
      (The MIT License) Checker Qual (org.checkerframework:checker-qual:3.43.0 - https://checkerframework.org/)
      (Eclipse Public License v2.0) JUnit Jupiter API (org.junit.jupiter:junit-jupiter-api:5.12.0 - https://junit.org/junit5/)
