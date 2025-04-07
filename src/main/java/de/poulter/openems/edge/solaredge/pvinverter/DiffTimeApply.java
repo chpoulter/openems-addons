@@ -28,7 +28,7 @@ public abstract class DiffTimeApply<T extends Number> {
 
         log.info("currentValue " + currentValue.toString() + ", nextValue " + nextValue);
         log.info("timeout " + timeout + ", nextTimeoutAt " + nextTimeoutAt);
-        log.info("diffApply " + diffApply + ", timeApply " + timeApply);
+        log.info("diffApply " + diffApply + ", timeApply " + timeApply + " " + (diffApply || timeApply ? " [ APPLY ]" : "[ NOPE  ]"));
 
         if (diffApply || timeApply) {
             log.info("Setting to " + nextValue);
