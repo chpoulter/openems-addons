@@ -22,14 +22,13 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
-/target/
+**/target/
 
 # eclipse
 .classpath
 .project
 .settings/
 
-.project
-openems-maven-repo
-alljarslist.txt
-patches/
+maven-repo/repo
+maven-repo/alljarslist.txt
+maven-repo/patches

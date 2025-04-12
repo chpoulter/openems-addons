@@ -1,28 +1,17 @@
-# openems-edge-meter-bgetech-ds100
-OpenEMS Edge Meter B+G E-TECH DS100
-
-Applies to
-- B+G E-Tech DS100-009
-- B+G E-Tech DS100-00B
-- B+G E-Tech DS100-30B
-
-Implemented Natures:
-- ElectricityMeter
+# openems-addons
+Christian's OpenEMS Addons
 
 [https://github.com/chpoulter/openems-addons](https://github.com/chpoulter/openems-addons "https://github.com/chpoulter/openems-addons")
 
 ## Build
 
-Just build with maven clean package and you'll get a jar file that can be added to the felix load
-folder. 
-
-You will need a local maven repository containing OpenEMS bundles. Use maven-repo to generate one.
+Just build with maven clean package and you'll get some jar files that can be added to the felix load folder.
 
 ## License
 
 Copyright © 2025 Christian Poulter <devel(at)poulter.de>
 
-The OpenEMS Edge Meter B+G E-TECH DS100 Bundle is released under the GNU AFFERO GENERAL PUBLIC LICENSE Version 3 license, for more information, check the LICENSE file.
+The OpenEMS Addons are released under the GNU AFFERO GENERAL PUBLIC LICENSE Version 3 license, for more information, check the LICENSE file.
 
 It makes use of third party libraries, for more information check the LICENSE-3RD-PARTY file.
 

@@ -104,6 +104,7 @@ RUN for f in *.jar; do \
 RUN ls -la /jars2
 RUN ls -la /source
 
-RUN chmod 755 /mvndeploy.sh  
-#RUN cat /mvndeploy.sh
-RUN /mvndeploy.sh  
+RUN chmod 755 /mvndeploy.sh
+RUN /mvndeploy.sh
+
+

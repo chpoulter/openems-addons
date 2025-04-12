@@ -7,14 +7,14 @@ Implemented Natures:
 - ElectricityMeter
 - ManagedSymmetricPvInverter
 
-[https://github.com/chpoulter/openems-edge-pvinverter-solaredge-se9k](https://github.com/chpoulter/openems-edge-pvinverter-solaredge-se9k "https://github.com/chpoulter/openems-edge-pvinverter-solaredge-se9k")
+[https://github.com/chpoulter/openems-addons](https://github.com/chpoulter/openems-addons "https://github.com/chpoulter/openems-addons")
 
 ## Build
 
 Just build with maven clean package and you'll get a jar file that can be added to the felix load
 folder. 
 
-You will need a local maven repository containing OpenEMS bundles. Use [openems-maven-repo](https://github.com/chpoulter/openems-maven-repo "openems-maven-repo") to generate one.
+You will need a local maven repository containing OpenEMS bundles. Use maven-repo to generate one.
 
 ## License
 

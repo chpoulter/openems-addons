@@ -29,6 +29,6 @@ Lists of 32 third-party dependencies.
      (Apache License, Version 2.0) org.osgi:org.osgi.util.function (org.osgi:org.osgi.util.function:1.0.0 - http://www.osgi.org/)
      (Apache License, Version 2.0) org.osgi:org.osgi.util.promise (org.osgi:org.osgi.util.promise:1.0.0 - http://www.osgi.org/)
      (Apache-2.0) org.osgi:org.osgi.util.tracker (org.osgi:org.osgi.util.tracker:1.5.4 - https://docs.osgi.org/)
-     (Apache-2.0) org.osgi:osgi.annotation (org.osgi:osgi.annotation:8.1.0 - https://docs.osgi.org/)
+     (Apache-2.0) org.osgi:osgi.annotation (org.osgi:osgi.annotation:8.0.1 - https://docs.osgi.org/)
      (MIT License) SLF4J API Module (org.slf4j:slf4j-api:1.7.25 - http://www.slf4j.org)
      (MIT License) SLF4J Simple Binding (org.slf4j:slf4j-simple:1.7.25 - http://www.slf4j.org)

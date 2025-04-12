@@ -1,5 +1,5 @@
 <!--
- *   OpenEMS Meter B+G E-Tech DS100 bundle
+ *   OpenEMS maven repo
  *
  *   Written by Christian Poulter
  *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
@@ -31,48 +31,32 @@
     <version>1.0.0</version>
   </parent>
 
-  <artifactId>edge-meter-bgetech-ds100</artifactId>
-  <packaging>bundle</packaging>
+  <artifactId>maven-repo</artifactId>
+  <packaging>pom</packaging>
 
-  <name>OpenEMS Edge Meter B+G E-TECH DS100</name>
-  <description>Implements B+G E-TECH DS100 for OpenEMS</description>
+  <name>OpenEMS Maven Repository</name>
+  <description>Creates a maven repository with all OpenEMS jars</description>
 
-  <properties>
-    <bundleSymbolicName>${project.groupId}.edge.meter.bgetech.ds100</bundleSymbolicName>
-  </properties>
-
-  <dependencies> 
-
-    <!-- modbus -->
-    <dependency>
-      <groupId>com.ghgande</groupId>
-      <artifactId>j2mod</artifactId>
-    </dependency>
-
-    <!-- OSGI -->
-    <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.util.tracker</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.service.event</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.framework</artifactId>
-    </dependency>
-
-    <!-- OpenEMS dependencies -->
-    <dependency>
-    	<groupId>io.openems</groupId>  
-    	<artifactId>edge.bridge.modbus</artifactId>
-    </dependency>
-    <dependency>
-    	<groupId>io.openems</groupId>  
-    	<artifactId>edge.meter.api</artifactId>
-    </dependency>
-
-  </dependencies>
-
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>docker-build</id>
+            <phase>install</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>./build.sh</executable>
+              <workingDirectory>${project.basedir}</workingDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

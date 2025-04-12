@@ -21,11 +21,24 @@
 #    SPDX-License-Identifier: AGPL-3.0-or-later
 #
 
+echo Building image
 #DOCKER_BUILDKIT=1 docker build -t cpou/openems-maven-repo -f Dockerfile --progress plain --no-cache --pull .
 DOCKER_BUILDKIT=1 docker build -t cpou/openems-maven-repo -f Dockerfile --progress plain .
 
+# clear old repo
+echo Cleaning old REPO
+rm -r ./repo
+ls ./repo
+
 # extract repo from docker image
+echo Extracting repo from image
 id=$(docker create cpou/openems-maven-repo)
-docker cp $id:/openems-maven-repo ./openems-maven-repo
+docker cp $id:/openems-maven-repo ./repo
 docker cp $id:/alljarslist.txt ./alljarslist.txt
 docker rm -v $id
+
+echo Result:
+find repo -type f -name *jar
+
+
+
