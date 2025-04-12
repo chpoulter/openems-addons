@@ -1,0 +1,323 @@
+<!--
+ *   OpenEMS PvInverter SolarEdge Se9k bundle
+ *
+ *   Written by Christian Poulter
+ *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU Affero General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Affero General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Affero General Public License
+ *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ *   SPDX-License-Identifier: AGPL-3.0-or-later
+ *
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>de.poulter.openems</groupId>
+  <artifactId>edge.pvinverter.solaredge.se9k</artifactId>
+  <version>1.0.0</version>
+  <packaging>bundle</packaging>
+
+  <name>OpenEMS Edge PvInverter SolarEdge SE9K</name>
+  <description>Implements SolarEdge Se9k for OpenEMS</description>
+
+  <url>https://github.com/chpoulter/openems-edge-pvinverter-solaredge-se9k</url>
+
+  <inceptionYear>2025</inceptionYear>
+
+  <licenses>
+    <license>
+      <name>AGPL-3.0-or-later</name>
+      <url>https://www.gnu.org/licenses/agpl.txt</url>
+      <distribution>repo</distribution>
+      <comments>GNU Affero General Public License v3.0 or later</comments>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>chpo</id>
+      <name>Christian Poulter</name>
+      <email>devel@poulter.de</email>
+      <url>http://www.poulter.de</url>
+    </developer>
+  </developers>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/chpoulter/openems-edge-pvinverter-solaredge-se9k/issues</url>
+  </issueManagement>
+
+  <scm>
+    <connection>scm:git:git@github.com:chpoulter/openems-edge-pvinverter-solaredge-se9k.git</connection>
+    <developerConnection>scm:git:git@github.com:chpoulter/openems-edge-pvinverter-solaredge-se9k.git</developerConnection>
+    <tag>HEAD</tag>
+    <url>https://github.com/chpoulter/openems-edge-pvinverter-solaredge-se9k/tree/${project.scm.tag}</url>
+  </scm>
+
+  <repositories>
+
+    <!-- 
+      unfortuatly OpenEMS does not provide jars in a central repo
+      see openems-maven-repo how to generate this local repository
+    -->
+    <repository>
+      <id>openems-maven-repo</id>
+      <url>file:${project.basedir}/../openems-maven-repo/openems-maven-repo</url>
+    </repository>
+
+  </repositories>
+
+  <dependencies> 
+
+    <!-- misc -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-math3</artifactId>
+      <version>3.6.1</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>33.4.0-jre</version>
+      <scope>provided</scope>
+    </dependency>    
+
+    <!-- modbus support -->
+    <dependency>
+      <groupId>com.ghgande</groupId>
+      <artifactId>j2mod</artifactId>
+      <version>3.2.1</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- OSGI -->
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.service.cm</artifactId>
+      <version>1.6.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.service.event</artifactId>
+      <version>1.4.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.service.component</artifactId>
+      <version>1.5.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.service.component.annotations</artifactId>
+      <version>1.5.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.service.metatype.annotations</artifactId>
+      <version>1.4.1</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- OpenEMS dependencies --> 
+    <dependency>
+    	<groupId>io.openems</groupId>
+    	<artifactId>common</artifactId>
+      <version>2025.3.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.openems</groupId>
+      <artifactId>edge.common</artifactId>
+      <version>2025.3.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+    	<groupId>io.openems</groupId>
+    	<artifactId>edge.meter.api</artifactId>
+    	<version>2025.3.0</version>
+    	<scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.openems</groupId>
+      <artifactId>edge.pvinverter.api</artifactId>
+      <version>2025.3.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.openems</groupId>
+      <artifactId>edge.bridge.modbus</artifactId>
+      <version>2025.3.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.openems</groupId>
+      <artifactId>edge.pvinverter.sunspec</artifactId>
+      <version>2025.3.0</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+
+    <plugins>
+
+      <!-- OpenEMS uses java 21 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.14.0</version>
+        <configuration>
+          <source>21</source>
+          <target>21</target>
+        </configuration>
+      </plugin>
+
+      <!-- package all to jar bundle that can be deploy into apache felix -->
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>6.0.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Export-Package></Export-Package>
+            <Private-Package>de.poulter.openems.*</Private-Package>
+
+            <Bundle-SymbolicName>de.poulter.openems.edge.pvinverter.solaredge.se9k</Bundle-SymbolicName>
+            <Bundle-Version>${project.version}</Bundle-Version>
+            <Bundle-Name>${project.name}</Bundle-Name>
+            <Bundle-Category>osgi</Bundle-Category>
+            <Bundle-Description>${project.description}</Bundle-Description>
+            <Bundle-Vendor>Christian Poulter</Bundle-Vendor>
+            <Bundle-ContactAddress>devel(at)poulter.de</Bundle-ContactAddress>
+            <Bundle-Copyright>${project.name} (C) 2025 Christian Poulter</Bundle-Copyright>
+            <Bundle-License>https://www.gnu.org/licenses/agpl-3.0.txt</Bundle-License>	
+
+          </instructions>
+        </configuration>
+      </plugin>
+
+      <!-- do some license checks -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>2.5.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>add-third-party</goal>
+              <goal>aggregate-add-third-party</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <outputDirectory>${project.build.directory}/license</outputDirectory>
+          <thirdPartyFilename>LICENSE-3RD-PARTY.txt</thirdPartyFilename>
+          <addOutputDirectoryAsResourceDir>false</addOutputDirectoryAsResourceDir>
+          <bundleThirdPartyPath>../../LICENSE-3RD-PARTY</bundleThirdPartyPath>
+          <failOnMissing>true</failOnMissing>
+          <generateBundle>true</generateBundle>
+          <verbose>true</verbose>
+          <excludedGroups>io.openems</excludedGroups>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>com.github.codemonstur</groupId>
+        <artifactId>maven-check-license</artifactId>
+        <version>1.0.0</version>
+        <executions>
+          <execution><goals><goal>check-licenses</goal></goals></execution>
+        </executions>
+        <configuration>
+          <enabled>true</enabled> 
+          <printViolations>true</printViolations> 
+          <printCompliant>true</printCompliant> 
+          <failBuildOnViolation>true</failBuildOnViolation> 
+          <checkCodeDependencies>true</checkCodeDependencies> 
+          <checkPluginDependencies>true</checkPluginDependencies> 
+          <includeCompileDependencies>true</includeCompileDependencies> 
+          <includeRuntimeDependencies>true</includeRuntimeDependencies> 
+          <includeProvidedDependencies>false</includeProvidedDependencies> 
+          <includeTestDependencies>true</includeTestDependencies> 
+          <strategy>passOnMatch</strategy> 
+
+          <rules>
+            <rule>url:regex:(http|https)://www.gnu.org/licenses/lgpl-3.0.txt</rule>
+            <rule>url:regex:(http|https)://www.apache.org/licenses/LICENSE-2.0.txt</rule>            
+            <rule>url:regex:(http|https)://(www.)?opensource.org/licenses/(MIT|mit-license.php)</rule>
+            <rule>name:equal:The MIT License</rule>
+            <rule>name:equal:Eclipse Public License v2.0</rule>
+            <rule>name:regex:(The )?Apache(\s|-)(Software )?(License |License, )?(Version |version )?2\.0</rule>
+          </rules>
+        </configuration>
+      </plugin>
+
+      <!-- check dependencies for CVEs -->
+      <plugin>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <version>12.1.0</version>
+        <configuration>
+          <failBuildOnCVSS>8</failBuildOnCVSS>
+          <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+
+    <!-- include these files to jar bundle -->
+    <resources>
+      <resource>
+        <directory>${project.basedir}</directory>
+        <includes>
+          <include>LICENSE</include>
+          <include>LICENSE-3RD-PARTY</include>
+          <include>README.md</include>
+        </includes>
+      </resource>
+    </resources>
+  </build>
+
+  <!-- create license reports -->
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>2.5.0</version>
+      </plugin>
+    </plugins>
+  </reporting>
+
+</project>
