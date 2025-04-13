@@ -59,6 +59,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <openems.version>2025.3.0</openems.version>
   </properties>
 
   <issueManagement>
@@ -72,19 +73,6 @@
     <tag>HEAD</tag>
     <url>https://github.com/chpoulter/openems-addons/tree/${project.scm.tag}</url>
   </scm>
-
-  <repositories>
-
-    <!-- 
-      unfortuatly OpenEMS does not provide jars in a central repo
-      see openems-maven-repo how to generate this local repository
-    -->
-    <repository>
-      <id>openems-maven-repo</id>
-      <url>file:${project.basedir}/../maven-repo/repo</url>
-    </repository>
-
-  </repositories>
 
   <dependencyManagement>
     <dependencies>
@@ -106,6 +94,12 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>33.4.0-jre</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>2.12.1</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
@@ -177,55 +171,61 @@
       <dependency>
         <groupId>io.openems</groupId>
         <artifactId>common</artifactId>
-        <version>2025.3.0</version>
+        <version>${openems.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.openems</groupId>
+        <artifactId>backend.common</artifactId>
+        <version>${openems.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>io.openems</groupId>
         <artifactId>edge.common</artifactId>
-        <version>2025.3.0</version>
+        <version>${openems.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>io.openems</groupId>
         <artifactId>edge.controller.api</artifactId>
-        <version>2025.3.0</version>
+        <version>${openems.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>io.openems</groupId>
         <artifactId>edge.evcs.api</artifactId>
-        <version>2025.3.0</version>
+        <version>${openems.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>io.openems</groupId>
         <artifactId>edge.io.api</artifactId>
-        <version>2025.3.0</version>
+        <version>${openems.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>io.openems</groupId>
         <artifactId>edge.meter.api</artifactId>
-        <version>2025.3.0</version>
+        <version>${openems.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>io.openems</groupId>
         <artifactId>edge.pvinverter.api</artifactId>
-        <version>2025.3.0</version>
+        <version>${openems.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>io.openems</groupId>
         <artifactId>edge.bridge.modbus</artifactId>
-        <version>2025.3.0</version>
+        <version>${openems.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>io.openems</groupId>
         <artifactId>edge.pvinverter.sunspec</artifactId>
-        <version>2025.3.0</version>
+        <version>${openems.version}</version>
         <scope>provided</scope>
       </dependency>
 
@@ -243,68 +243,9 @@
         <version>5.12.0</version>
         <scope>test</scope>
       </dependency>
-      <dependency>
-        <groupId>com.google.code.gson</groupId>
-        <artifactId>gson</artifactId>
-        <version>2.12.1</version>
-        <scope>test</scope>
-      </dependency>
     </dependencies>
+
   </dependencyManagement>
-
-  <dependencies>
-    <!-- misc -->
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-    </dependency>
-
-    <!-- OSGI -->
-    <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.service.cm</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.service.component</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.service.component.annotations</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.service.metatype.annotations</artifactId>
-    </dependency>
-
-    <!-- OpenEMS -->
-    <dependency>
-      <groupId>io.openems</groupId>
-      <artifactId>common</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.openems</groupId>
-      <artifactId>edge.common</artifactId>
-    </dependency>
-
-    <!-- Testing -->
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-params</artifactId>
-    </dependency>
-  </dependencies>
 
   <build>
 
@@ -479,9 +420,8 @@
 
   <modules>
     <module>maven-repo</module>
-    <module>edge-pvinverter-solaredge-se9k</module>
-    <module>edge-controller-para14a</module>
-    <module>edge-meter-bgetech-ds100</module>
+    <module>backend</module>
+    <module>edge</module>
   </modules>
 
 </project>

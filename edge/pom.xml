@@ -1,0 +1,114 @@
+<!--
+ *   OpenEMS Edge Addons
+ *
+ *   Written by Christian Poulter
+ *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU Affero General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Affero General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Affero General Public License
+ *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ *   SPDX-License-Identifier: AGPL-3.0-or-later
+ *
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>de.poulter.openems</groupId>
+    <artifactId>addons</artifactId>
+    <version>1.0.0</version>
+  </parent>
+
+  <artifactId>edge</artifactId>
+  <packaging>pom</packaging>
+
+  <name>OpenEMS Edge Addons</name>
+  <description>Addons for OpenEMS edge</description>
+
+  <repositories>
+
+    <!-- 
+      unfortuatly OpenEMS does not provide jars in a central repo
+      see openems-maven-repo how to generate this local repository
+    -->
+    <repository>
+      <id>openems-maven-repo</id>
+      <url>file:${project.basedir}/../../maven-repo/repo</url>
+    </repository>
+
+  </repositories>
+
+  <dependencies>
+
+    <!-- misc -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+    </dependency>
+
+    <!-- OSGI -->
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.service.cm</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.service.component</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.service.component.annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.service.metatype.annotations</artifactId>
+    </dependency>
+
+    <!-- OpenEMS -->
+    <dependency>
+      <groupId>io.openems</groupId>
+      <artifactId>common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.openems</groupId>
+      <artifactId>edge.common</artifactId>
+    </dependency>
+
+    <!-- Testing -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+    </dependency>
+  </dependencies>
+
+  <modules>
+    <module>pvinverter-solaredge-se9k</module>
+    <module>controller-para14a</module>
+    <module>meter-bgetech-ds100</module>
+  </modules>
+
+</project>

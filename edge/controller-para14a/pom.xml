@@ -1,7 +1,8 @@
 <!--
- *   OpenEMS PvInverter SolarEdge Se9k bundle
  *
- *   Written by Christian Poulter
+ *   OpenEMS Meter Paragraph 14a Controller
+ *
+ *   Written by Christian Poulter.
  *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -27,18 +28,18 @@
 
   <parent>
     <groupId>de.poulter.openems</groupId>
-    <artifactId>addons</artifactId>
+    <artifactId>edge</artifactId>
     <version>1.0.0</version>
   </parent>
 
-  <artifactId>edge-pvinverter-solaredge-se9k</artifactId>
+  <artifactId>edge-controller-para14a</artifactId>
   <packaging>bundle</packaging>
 
-  <name>OpenEMS Edge PvInverter SolarEdge SE9K</name>
-  <description>Implements SolarEdge Se9k for OpenEMS</description>
+  <name>OpenEMS Meter Paragraph 14a Controller</name>
+  <description>Implements some support for §14a EnWG in OpenEMS with relais interface.</description>
 
   <properties>
-    <bundleSymbolicName>${project.groupId}.edge.pvinverter.solaredge.se9k</bundleSymbolicName>
+    <bundleSymbolicName>${project.groupId}.edge.controller.para14a</bundleSymbolicName>
   </properties>
 
   <dependencies> 
@@ -49,22 +50,41 @@
       <artifactId>commons-math3</artifactId>
     </dependency>
 
-    <!-- modbus -->
     <dependency>
-      <groupId>com.ghgande</groupId>
-      <artifactId>j2mod</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
     </dependency>
 
-    <!-- OSGI -->
+    <!-- OSGI --> 
     <dependency>
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.service.event</artifactId>
     </dependency>
-
-    <!-- OpenEMS --> 
     <dependency>
-    	<groupId>io.openems</groupId>
-    	<artifactId>edge.meter.api</artifactId>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.util.tracker</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.service.metatype</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.framework</artifactId>
+    </dependency>
+
+    <!-- OpenEMS dependencies -->
+    <dependency>
+      <groupId>io.openems</groupId>
+      <artifactId>common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.openems</groupId>
+      <artifactId>edge.common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.openems</groupId>
+      <artifactId>edge.controller.api</artifactId>
     </dependency>
     <dependency>
       <groupId>io.openems</groupId>
@@ -72,11 +92,15 @@
     </dependency>
     <dependency>
       <groupId>io.openems</groupId>
-      <artifactId>edge.bridge.modbus</artifactId>
+      <artifactId>edge.evcs.api</artifactId>
     </dependency>
     <dependency>
       <groupId>io.openems</groupId>
-      <artifactId>edge.pvinverter.sunspec</artifactId>
+      <artifactId>edge.meter.api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.openems</groupId>
+      <artifactId>edge.io.api</artifactId>
     </dependency>
   </dependencies>
 

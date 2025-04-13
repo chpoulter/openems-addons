@@ -27,15 +27,15 @@
 
   <parent>
     <groupId>de.poulter.openems</groupId>
-    <artifactId>addons</artifactId>
+    <artifactId>edge</artifactId>
     <version>1.0.0</version>
   </parent>
 
   <artifactId>edge-meter-bgetech-ds100</artifactId>
   <packaging>bundle</packaging>
 
-  <name>OpenEMS Edge Meter B+G E-TECH DS100</name>
-  <description>Implements B+G E-TECH DS100 for OpenEMS</description>
+  <name>OpenEMS Meter B+G E-Tech DS100 bundle</name>
+  <description>OpenEMS Edge Meter B+G E-TECH DS100</description>
 
   <properties>
     <bundleSymbolicName>${project.groupId}.edge.meter.bgetech.ds100</bundleSymbolicName>
