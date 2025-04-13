@@ -105,4 +105,8 @@
     </dependency>
   </dependencies>
 
+  <modules>
+    <module>metadata-ldap</module>
+  </modules>
+
 </project>
