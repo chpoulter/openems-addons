@@ -7,6 +7,12 @@ Christian's OpenEMS Addons
 
 Just build with maven clean package and you'll get some jar files that can be added to the felix load folder.
 
+## extra commands
+
+OWASP check: mvn -P security verify  
+License check: mvn -P license validate  
+License 3-party: mvn -P license generate-resources  
+
 ## License
 
 Copyright © 2025 Christian Poulter <devel(at)poulter.de>

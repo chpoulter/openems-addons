@@ -287,81 +287,6 @@
         </configuration>
       </plugin>
 
-      <!-- check dependencies for CVEs -->
-      <plugin>
-        <groupId>org.owasp</groupId>
-        <artifactId>dependency-check-maven</artifactId>
-        <version>12.1.0</version>
-        <configuration>
-          <failBuildOnCVSS>4</failBuildOnCVSS>
-          <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
-          <formats>html,xml</formats>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!-- do some license checks -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>license-maven-plugin</artifactId>
-        <version>2.5.0</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>add-third-party</goal>
-              <goal>aggregate-add-third-party</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <outputDirectory>${project.build.directory}/license</outputDirectory>
-          <thirdPartyFilename>LICENSE-3RD-PARTY.txt</thirdPartyFilename>
-          <addOutputDirectoryAsResourceDir>false</addOutputDirectoryAsResourceDir>
-          <bundleThirdPartyPath>../../LICENSE-3RD-PARTY</bundleThirdPartyPath>
-          <failOnMissing>true</failOnMissing>
-          <generateBundle>true</generateBundle>
-          <verbose>true</verbose>
-          <excludedGroups>io.openems</excludedGroups>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>com.github.codemonstur</groupId>
-        <artifactId>maven-check-license</artifactId>
-        <version>1.0.0</version>
-        <executions>
-          <execution><goals><goal>check-licenses</goal></goals></execution>
-        </executions>
-        <configuration>
-          <enabled>true</enabled> 
-          <printViolations>true</printViolations> 
-          <printCompliant>true</printCompliant> 
-          <failBuildOnViolation>true</failBuildOnViolation> 
-          <checkCodeDependencies>true</checkCodeDependencies> 
-          <checkPluginDependencies>true</checkPluginDependencies> 
-          <includeCompileDependencies>true</includeCompileDependencies> 
-          <includeRuntimeDependencies>true</includeRuntimeDependencies> 
-          <includeProvidedDependencies>false</includeProvidedDependencies> 
-          <includeTestDependencies>true</includeTestDependencies> 
-          <strategy>passOnMatch</strategy> 
-
-          <rules>
-            <rule>url:regex:(http|https)://www.gnu.org/licenses/lgpl-3.0.txt</rule>
-            <rule>url:regex:(http|https)://www.apache.org/licenses/LICENSE-2.0.txt</rule>            
-            <rule>url:regex:(http|https)://(www.)?opensource.org/licenses/(MIT|mit-license.php)</rule>
-            <rule>name:equal:The MIT License</rule>
-            <rule>name:equal:Eclipse Public License v2.0</rule>
-            <rule>name:regex:(The )?Apache(\s|-)(Software )?(License |License, )?(Version |version )?2\.0</rule>
-          </rules>
-        </configuration>
-      </plugin>
-
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <version>3.3.1</version>
@@ -376,7 +301,7 @@
               <outputDirectory>${project.build.directory}</outputDirectory>
               <resources>
                 <resource>
-                  <directory>${project.basedir}/..</directory>
+                  <directory>${project.basedir}/../..</directory>
                   <includes>
                     <include>LICENSE</include>
                   </includes>
@@ -387,7 +312,6 @@
         </executions>
       </plugin>
     </plugins>
-
 
     <!-- include these files to jar bundle -->
     <resources>
@@ -417,6 +341,104 @@
       </plugin>
     </plugins>
   </reporting>
+
+  <profiles>
+    <profile>
+      <id>security</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <!-- check dependencies for CVEs -->
+          <plugin>
+            <groupId>org.owasp</groupId>
+            <artifactId>dependency-check-maven</artifactId>
+            <version>12.1.0</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <failBuildOnCVSS>4</failBuildOnCVSS>
+              <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+              <formats>html,xml</formats>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>license</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.codemonstur</groupId>
+            <artifactId>maven-check-license</artifactId>
+            <version>1.0.0</version>
+            <executions>
+              <execution>
+                <phase>validate</phase>
+                <goals>
+                  <goal>check-licenses</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <enabled>true</enabled> 
+              <printViolations>true</printViolations> 
+              <printCompliant>true</printCompliant> 
+              <failBuildOnViolation>true</failBuildOnViolation> 
+              <checkCodeDependencies>true</checkCodeDependencies> 
+              <checkPluginDependencies>true</checkPluginDependencies> 
+              <includeCompileDependencies>true</includeCompileDependencies> 
+              <includeRuntimeDependencies>true</includeRuntimeDependencies> 
+              <includeProvidedDependencies>false</includeProvidedDependencies> 
+              <includeTestDependencies>true</includeTestDependencies> 
+              <strategy>passOnMatch</strategy> 
+              <rules>
+                <rule>url:regex:(http|https)://www.gnu.org/licenses/lgpl-3.0.txt</rule>
+                <rule>url:regex:(http|https)://www.apache.org/licenses/LICENSE-2.0.txt</rule>            
+                <rule>url:regex:(http|https)://(www.)?opensource.org/licenses/(MIT|mit-license.php)</rule>
+                <rule>name:equal:The MIT License</rule>
+                <rule>name:equal:Eclipse Public License v2.0</rule>
+                <rule>name:regex:(The )?Apache(\s|-)(Software )?(License |License, )?(Version |version )?2\.0</rule>
+              </rules>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>license-maven-plugin</artifactId>
+            <version>2.5.0</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>add-third-party</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <outputDirectory>${project.build.directory}/license</outputDirectory>
+              <thirdPartyFilename>LICENSE-3RD-PARTY.txt</thirdPartyFilename>
+              <addOutputDirectoryAsResourceDir>false</addOutputDirectoryAsResourceDir>
+              <bundleThirdPartyPath>../../LICENSE-3RD-PARTY</bundleThirdPartyPath>
+              <failOnMissing>true</failOnMissing>
+              <generateBundle>true</generateBundle>
+              <verbose>true</verbose>
+              <excludedGroups>io.openems</excludedGroups>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
   <modules>
     <module>maven-repo</module>
