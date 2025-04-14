@@ -1,0 +1,78 @@
+<!--
+ *   OpenEMS IO bestep bundle
+ *
+ *   Written by Christian Poulter
+ *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU Affero General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Affero General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Affero General Public License
+ *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ *   SPDX-License-Identifier: AGPL-3.0-or-later
+ *
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>de.poulter.openems</groupId>
+    <artifactId>edge</artifactId>
+    <version>1.0.0</version>
+  </parent>
+
+  <artifactId>edge-io-bestep</artifactId>
+  <packaging>bundle</packaging>
+
+  <name>OpenEMS IO bestep bundle</name>
+  <description>Implements the bestep modbus 4 IO port interface</description>
+
+  <properties>
+    <bundleSymbolicName>${project.groupId}.edge.io.bestep</bundleSymbolicName>
+  </properties>
+
+  <dependencies> 
+
+    <!-- modbus -->
+    <dependency>
+      <groupId>com.ghgande</groupId>
+      <artifactId>j2mod</artifactId>
+    </dependency>
+
+    <!-- OSGI -->
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.util.tracker</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.service.event</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.framework</artifactId>
+    </dependency>
+
+    <!-- OpenEMS dependencies -->
+    <dependency>
+    	<groupId>io.openems</groupId>  
+    	<artifactId>edge.bridge.modbus</artifactId>
+    </dependency>
+    <dependency>
+    	<groupId>io.openems</groupId>  
+    	<artifactId>edge.io.api</artifactId>
+    </dependency>
+
+  </dependencies>
+
+</project>

@@ -107,6 +107,7 @@
 
   <modules>
     <module>controller-para14a</module>
+    <module>io-bestep</module>
     <module>metadata-ldap</module>
     <module>meter-bgetech-ds100</module>
     <module>pvinverter-solaredge-se9k</module>
