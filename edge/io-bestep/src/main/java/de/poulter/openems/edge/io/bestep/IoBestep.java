@@ -24,7 +24,6 @@
 package de.poulter.openems.edge.io.bestep;
 
 import io.openems.common.channel.AccessMode;
-import io.openems.common.channel.Debounce;
 import io.openems.common.channel.PersistencePriority;
 import io.openems.edge.common.channel.BooleanDoc;
 import io.openems.edge.common.channel.Doc;
@@ -35,10 +34,10 @@ public interface IoBestep extends OpenemsComponent, ModbusSlave {
 
     public enum ChannelId implements io.openems.edge.common.channel.ChannelId {
 
-        INPUT_1(new BooleanDoc().debounce(2, Debounce.SAME_VALUES_IN_A_ROW_TO_CHANGE).accessMode(AccessMode.READ_ONLY).persistencePriority(PersistencePriority.HIGH)),
-        INPUT_2(new BooleanDoc().debounce(2, Debounce.SAME_VALUES_IN_A_ROW_TO_CHANGE).accessMode(AccessMode.READ_ONLY).persistencePriority(PersistencePriority.HIGH)),
-        INPUT_3(new BooleanDoc().debounce(2, Debounce.SAME_VALUES_IN_A_ROW_TO_CHANGE).accessMode(AccessMode.READ_ONLY).persistencePriority(PersistencePriority.HIGH)),
-        INPUT_4(new BooleanDoc().debounce(2, Debounce.SAME_VALUES_IN_A_ROW_TO_CHANGE).accessMode(AccessMode.READ_ONLY).persistencePriority(PersistencePriority.HIGH)),
+        INPUT_1(new BooleanDoc().accessMode(AccessMode.READ_ONLY).persistencePriority(PersistencePriority.HIGH)),
+        INPUT_2(new BooleanDoc().accessMode(AccessMode.READ_ONLY).persistencePriority(PersistencePriority.HIGH)),
+        INPUT_3(new BooleanDoc().accessMode(AccessMode.READ_ONLY).persistencePriority(PersistencePriority.HIGH)),
+        INPUT_4(new BooleanDoc().accessMode(AccessMode.READ_ONLY).persistencePriority(PersistencePriority.HIGH)),
 
         RELAY_1(new BooleanDoc().accessMode(AccessMode.READ_WRITE).persistencePriority(PersistencePriority.MEDIUM)),
         RELAY_2(new BooleanDoc().accessMode(AccessMode.READ_WRITE).persistencePriority(PersistencePriority.MEDIUM)),

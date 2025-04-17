@@ -24,6 +24,7 @@
 package de.poulter.openems.edge.io.bestep;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
@@ -57,6 +58,7 @@ import io.openems.edge.bridge.modbus.api.task.FC2ReadInputsTask;
 import io.openems.edge.bridge.modbus.api.task.FC5WriteCoilTask;
 import io.openems.edge.common.channel.BooleanReadChannel;
 import io.openems.edge.common.channel.BooleanWriteChannel;
+import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
 import io.openems.edge.common.modbusslave.ModbusSlave;
@@ -73,7 +75,10 @@ import io.openems.edge.io.api.DigitalOutput;
     immediate = true,
     configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-@EventTopics({ EdgeEventConstants.TOPIC_CYCLE_BEFORE_PROCESS_IMAGE })
+@EventTopics({
+    EdgeEventConstants.TOPIC_CYCLE_BEFORE_PROCESS_IMAGE,
+    EdgeEventConstants.TOPIC_CYCLE_EXECUTE_WRITE
+})
 public class IoBestepImpl extends AbstractOpenemsModbusComponent
     implements IoBestep, DigitalOutput, DigitalInput, ModbusComponent, OpenemsComponent, ModbusSlave, EventHandler
 {
@@ -87,6 +92,8 @@ public class IoBestepImpl extends AbstractOpenemsModbusComponent
 
     private final BooleanReadChannel[] digitalInputChannels;
     private final BooleanWriteChannel[] digitalOutputChannels;
+
+    private boolean channelMapper;
 
     public IoBestepImpl() {
         super(
@@ -127,6 +134,8 @@ public class IoBestepImpl extends AbstractOpenemsModbusComponent
             MODBUS_SETTER_REFERENCE,
             config.modbus_id()
         );
+
+        this.channelMapper = config.channelMapper();
     }
 
     @Deactivate
@@ -152,47 +161,81 @@ public class IoBestepImpl extends AbstractOpenemsModbusComponent
         if (!this.isEnabled()) return;
 
         switch (event.getTopic()) {
-            case EdgeEventConstants.TOPIC_CYCLE_BEFORE_PROCESS_IMAGE:
-                for (int i = 0; i < digitalInputChannels.length; i++) {
-                    try {
-                        digitalOutputChannels[i].setNextWriteValue(digitalInputChannels[i].value().orElse(false));
-                    } catch (OpenemsNamedException ex) {
-                        log.error("Could not set value.", ex);
-                    }
-                }
+            case EdgeEventConstants.TOPIC_CYCLE_EXECUTE_WRITE:
+                processTopicCycleExecuteWrite();
                 break;
+
+            case EdgeEventConstants.TOPIC_CYCLE_BEFORE_PROCESS_IMAGE:
+                handleCycleBeforeProcessImage();
+                break;
+
+        }
+    }
+
+    private void processTopicCycleExecuteWrite() {
+
+        // consume the nextwritevalues although we do not need them
+        for (BooleanWriteChannel digitalOutputChannel : digitalOutputChannels) {
+            digitalOutputChannel.getNextWriteValueAndReset();
+        }
+    }
+
+    private void handleCycleBeforeProcessImage() {
+
+        if (channelMapper) {
+            runChannelMapper();
+        }
+    }
+
+    private void runChannelMapper() {
+        for (int i = 0; i < digitalInputChannels.length; i++) {
+            Optional<Boolean> nextWriteValue = digitalOutputChannels[i].getNextWriteValue();
+            Value<Boolean> currentValue = digitalOutputChannels[i].value();
+            Value<Boolean> inputValue = digitalInputChannels[i].value();
+
+            if (nextWriteValue.isPresent()) continue;
+            if (!inputValue.isDefined()) continue;
+            if (currentValue.isDefined() && (currentValue.get() == inputValue.get())) continue;
+
+            try {
+                digitalOutputChannels[i].setNextWriteValue(inputValue.get());
+
+            } catch (OpenemsNamedException ex) {
+                logError(log, "Could not set value on channel " + digitalOutputChannels[i].channelId().name() + ": " + ex.getMessage());
+            }
         }
     }
 
     @Override
     protected ModbusProtocol defineModbusProtocol() {
+
         ModbusProtocol modbusProtocol = new ModbusProtocol(this,
-            new FC2ReadInputsTask(0, Priority.HIGH,
-                m(IoBestep.ChannelId.INPUT_1, new CoilElement(0)),
-                m(IoBestep.ChannelId.INPUT_2, new CoilElement(1)),
-                m(IoBestep.ChannelId.INPUT_3, new CoilElement(2)),
-                m(IoBestep.ChannelId.INPUT_4, new CoilElement(3)),
-                new CoilElement(4),
-                new CoilElement(5),
-                new CoilElement(6),
-                new CoilElement(7)
+            new FC2ReadInputsTask(0x00, Priority.HIGH,
+                m(IoBestep.ChannelId.INPUT_1, new CoilElement(0x00)),
+                m(IoBestep.ChannelId.INPUT_2, new CoilElement(0x01)),
+                m(IoBestep.ChannelId.INPUT_3, new CoilElement(0x02)),
+                m(IoBestep.ChannelId.INPUT_4, new CoilElement(0x03)),
+                new CoilElement(0x04),
+                new CoilElement(0x05),
+                new CoilElement(0x06),
+                new CoilElement(0x07)
             ),
 
-            new FC1ReadCoilsTask(0, Priority.LOW,
-                m(IoBestep.ChannelId.RELAY_1, new CoilElement(0)),
-                m(IoBestep.ChannelId.RELAY_2, new CoilElement(1)),
-                m(IoBestep.ChannelId.RELAY_3, new CoilElement(2)),
-                m(IoBestep.ChannelId.RELAY_4, new CoilElement(3)),
-                new CoilElement(4),
-                new CoilElement(5),
-                new CoilElement(6),
-                new CoilElement(7)
+            new FC1ReadCoilsTask(0x00, Priority.LOW,
+                m(IoBestep.ChannelId.RELAY_1, new CoilElement(0x00)),
+                m(IoBestep.ChannelId.RELAY_2, new CoilElement(0x01)),
+                m(IoBestep.ChannelId.RELAY_3, new CoilElement(0x02)),
+                m(IoBestep.ChannelId.RELAY_4, new CoilElement(0x03)),
+                new CoilElement(0x04),
+                new CoilElement(0x05),
+                new CoilElement(0x06),
+                new CoilElement(0x07)
             ),
 
-            new FC5WriteCoilTask(0, m(IoBestep.ChannelId.RELAY_1, new CoilElement(0))),
-            new FC5WriteCoilTask(1, m(IoBestep.ChannelId.RELAY_2, new CoilElement(1))),
-            new FC5WriteCoilTask(2, m(IoBestep.ChannelId.RELAY_3, new CoilElement(2))),
-            new FC5WriteCoilTask(3, m(IoBestep.ChannelId.RELAY_4, new CoilElement(3)))
+            new FC5WriteCoilTask(0x00, m(IoBestep.ChannelId.RELAY_1, new CoilElement(0x00))),
+            new FC5WriteCoilTask(0x01, m(IoBestep.ChannelId.RELAY_2, new CoilElement(0x01))),
+            new FC5WriteCoilTask(0x02, m(IoBestep.ChannelId.RELAY_3, new CoilElement(0x02))),
+            new FC5WriteCoilTask(0x03, m(IoBestep.ChannelId.RELAY_4, new CoilElement(0x03)))
 
         );
 
@@ -201,16 +244,17 @@ public class IoBestepImpl extends AbstractOpenemsModbusComponent
 
     @Override
     public BooleanWriteChannel[] digitalOutputChannels() {
-        return this.digitalOutputChannels;
+        return digitalOutputChannels;
     }
 
     @Override
     public BooleanReadChannel[] digitalInputChannels() {
-        return this.digitalInputChannels;
+        return digitalInputChannels;
     }
 
     @Override
     public ModbusSlaveTable getModbusSlaveTable(AccessMode accessMode) {
+
         return new ModbusSlaveTable(
             OpenemsComponent.getModbusSlaveNatureTable(accessMode),
             ModbusSlaveNatureTable.of(IoBestep.class, accessMode, 100)

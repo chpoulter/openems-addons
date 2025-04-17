@@ -1,5 +1,5 @@
 
-Lists of 31 third-party dependencies.
+Lists of 29 third-party dependencies.
      (Apache Software License, Version 2.0) (GNU Lesser GPL, Version 3) jSerialComm (com.fazecast:jSerialComm:2.10.4 - http://fazecast.github.io/jSerialComm/)
      (The Apache License, Version 2.0) j2mod (com.ghgande:j2mod:3.2.1 - https://github.com/steveohara/j2mod)
      (The Apache Software License, Version 2.0) FindBugs-jsr305 (com.google.code.findbugs:jsr305:3.0.2 - http://findbugs.sourceforge.net/)
@@ -17,7 +17,6 @@ Lists of 31 third-party dependencies.
      (Eclipse Public License v2.0) JUnit Platform Commons (org.junit.platform:junit-platform-commons:1.12.0 - https://junit.org/junit5/)
      (Eclipse Public License v2.0) JUnit Platform Engine API (org.junit.platform:junit-platform-engine:1.12.0 - https://junit.org/junit5/)
      (The Apache License, Version 2.0) org.opentest4j:opentest4j (org.opentest4j:opentest4j:1.3.0 - https://github.com/ota4j-team/opentest4j)
-     (Apache-2.0) org.osgi:org.osgi.framework (org.osgi:org.osgi.framework:1.10.0 - https://www.osgi.org/)
      (Apache License, Version 2.0) org.osgi:org.osgi.namespace.extender (org.osgi:org.osgi.namespace.extender:1.0.1 - http://www.osgi.org/)
      (Apache License, Version 2.0) org.osgi:org.osgi.namespace.implementation (org.osgi:org.osgi.namespace.implementation:1.0.0 - http://www.osgi.org/)
      (Apache-2.0) org.osgi:org.osgi.service.cm (org.osgi:org.osgi.service.cm:1.6.1 - https://docs.osgi.org/)
@@ -27,7 +26,6 @@ Lists of 31 third-party dependencies.
      (Apache-2.0) org.osgi:org.osgi.service.metatype.annotations (org.osgi:org.osgi.service.metatype.annotations:1.4.1 - https://docs.osgi.org/)
      (Apache License, Version 2.0) org.osgi:org.osgi.util.function (org.osgi:org.osgi.util.function:1.0.0 - http://www.osgi.org/)
      (Apache License, Version 2.0) org.osgi:org.osgi.util.promise (org.osgi:org.osgi.util.promise:1.0.0 - http://www.osgi.org/)
-     (Apache-2.0) org.osgi:org.osgi.util.tracker (org.osgi:org.osgi.util.tracker:1.5.4 - https://docs.osgi.org/)
      (Apache-2.0) org.osgi:osgi.annotation (org.osgi:osgi.annotation:8.0.1 - https://docs.osgi.org/)
      (MIT License) SLF4J API Module (org.slf4j:slf4j-api:2.0.9 - http://www.slf4j.org)
      (MIT License) SLF4J Simple Binding (org.slf4j:slf4j-simple:1.7.25 - http://www.slf4j.org)

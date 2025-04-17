@@ -1,7 +1,7 @@
 <!--
  *   OpenEMS IO bestep bundle
  *
- *   Written by Christian Poulter
+ *   Written by Christian Poulter.
  *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -52,15 +52,7 @@
     <!-- OSGI -->
     <dependency>
       <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.util.tracker</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.osgi</groupId>
       <artifactId>org.osgi.service.event</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.framework</artifactId>
     </dependency>
 
     <!-- OpenEMS dependencies -->
