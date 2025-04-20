@@ -1,0 +1,196 @@
+diff --git a/io.openems.edge.controller.api.websocket/src/io/openems/edge/controller/api/websocket/handler/AuthenticationRequestHandler.java b/io.openems.edge.controller.api.websocket/src/io/openems/edge/controller/api/websocket/handler/AuthenticationRequestHandler.java
+index 5b1630246..13f46ce61 100644
+--- a/io.openems.edge.controller.api.websocket/src/io/openems/edge/controller/api/websocket/handler/AuthenticationRequestHandler.java
++++ b/io.openems.edge.controller.api.websocket/src/io/openems/edge/controller/api/websocket/handler/AuthenticationRequestHandler.java
+@@ -55,8 +55,12 @@ public class AuthenticationRequestHandler implements JsonApi {
+ 		builder.handleRequest(AuthenticateWithPasswordRequest.METHOD, call -> {
+ 			final var request = AuthenticateWithPasswordRequest.from(call.getRequest());
+ 
++			Optional<User> user = request.usernameOpt.isPresent() ?
++				this.userService.authenticate(request.usernameOpt.get(), request.password) :
++				this.userService.authenticate(request.password);
++
+ 			return this.handleAuthentication(call.get(OnRequest.WS_DATA_KEY), request.getId(),
+-					this.userService.authenticate(request.password), UUID.randomUUID().toString());
++					user, UUID.randomUUID().toString());
+ 		});
+ 
+ 		builder.handleRequest(LogoutRequest.METHOD, endpoint -> {
+diff --git a/io.openems.edge.core/src/io/openems/edge/core/user/UserServiceImpl.java b/io.openems.edge.core/src/io/openems/edge/core/user/UserServiceImpl.java
+index 178036501..adbc688e8 100644
+--- a/io.openems.edge.core/src/io/openems/edge/core/user/UserServiceImpl.java
++++ b/io.openems.edge.core/src/io/openems/edge/core/user/UserServiceImpl.java
+@@ -52,7 +52,7 @@ import io.openems.edge.controller.api.backend.api.ControllerApiBackend;
+ 		name = "Core.User", //
+ 		immediate = true, //
+ 		scope = ServiceScope.SINGLETON, //
+-		configurationPolicy = ConfigurationPolicy.OPTIONAL //
++		configurationPolicy = ConfigurationPolicy.REQUIRE //
+ )
+ public class UserServiceImpl implements UserService {
+ 
+diff --git a/ui/src/app/index/login.component.html b/ui/src/app/index/login.component.html
+index 87af5bc4c..47ae60ccf 100644
+--- a/ui/src/app/index/login.component.html
++++ b/ui/src/app/index/login.component.html
+@@ -18,8 +18,8 @@
+               <ion-label translate>Login.title</ion-label>
+             </ion-item>
+ 
+-            <!-- OpenEMS Edge Login -->
+-            <ion-card-content *ngIf="environment.backend === 'OpenEMS Edge'">
++            <!-- OpenEMS Edge Login (standard)-->
++            <ion-card-content *ngIf="(environment.backend === 'OpenEMS Edge') && (environment.loginWithUsername !== true)">
+               <form (ngSubmit)="doLogin({ password: password.value})">
+                 <div class="ion-padding">
+                   <ion-item>
+@@ -28,9 +28,40 @@
+                     </ion-text>
+                   </ion-item>
+                   <ion-item>
+-                    <ion-label position="floating" translate>Login.passwordLabel</ion-label>
+-                    <ion-input #password required type="password" [placeholder]="'Login.passwordLabel' | translate"
+-                      value="user"></ion-input>
++                    <ion-input #password required autocomplete="current-password" type="password" [placeholder]="'Login.passwordLabel' | translate"
++                      label-placement="floating" [label]="'Login.passwordLabel' | translate">
++                    </ion-input>
++                  </ion-item>
++
++                  <!-- workaround for submit with enter key https://github.com/ionic-team/ionic-framework/issues/19368 -->
++                  <input type="submit" style="visibility: hidden; position: absolute; position: -999px" />
++
++                  <ion-button [disabled]="formIsDisabled" type="submit" class="ion-float-right">
++                    <ion-icon slot="icon-only" name="log-in-outline"></ion-icon>
++                  </ion-button>
++                </div>
++              </form>
++            </ion-card-content>
++
++            <!-- OpenEMS Edge Login (with username)-->
++            <ion-card-content *ngIf="(environment.backend === 'OpenEMS Edge') && (environment.loginWithUsername === true)">
++              <form (ngSubmit)="doLogin({username: username.value, password: password.value})">
++                <div class="ion-padding">
++                  <ion-item>
++                    <ion-text class="ion-text-wrap" color="medium" translate>
++                      Login.preamble
++                    </ion-text>
++                  </ion-item>
++                  <ion-item>
++                    <ion-input #username required autocomplete="on"
++                      [placeholder]="('Login.user' | translate)"
++                      [label]="'Login.user' | translate" label-placement="floating">
++                    </ion-input>
++                  </ion-item>
++                  <ion-item>
++                    <ion-input #password required autocomplete="current-password" type="password" [placeholder]="'Login.passwordLabel' | translate"
++                      label-placement="floating" [label]="'Login.passwordLabel' | translate">
++                    </ion-input>
+                   </ion-item>
+ 
+                   <!-- workaround for submit with enter key https://github.com/ionic-team/ionic-framework/issues/19368 -->
+@@ -47,13 +78,13 @@
+             <ion-card-content *ngIf="environment.backend === 'OpenEMS Backend'">
+               <form (ngSubmit)="doLogin({ username: username.value, password: password.value})">
+                 <ion-item>
+-                  <ion-input #username required type="input"
+-                    [placeholder]="'E-Mail / ' + ('Login.passwordLabel' | translate)"
++                  <ion-input #username required autocomplete="on"
++                    [placeholder]="'E-Mail / ' + ('Login.user' | translate)"
+                     [label]="'E-Mail / '  + ('Login.user' | translate)" label-placement="floating">
+                   </ion-input>
+                 </ion-item>
+                 <ion-item>
+-                  <ion-input #password required type="password" [placeholder]="'Login.passwordLabel' | translate"
++                  <ion-input #password required autocomplete="current-password" type="password" [placeholder]="'Login.passwordLabel' | translate"
+                     label-placement="floating" [label]="'Login.passwordLabel' | translate">
+                   </ion-input>
+                 </ion-item>
+diff --git a/ui/src/environments/index.ts b/ui/src/environments/index.ts
+index 61846fabb..4dce8dcde 100644
+--- a/ui/src/environments/index.ts
++++ b/ui/src/environments/index.ts
+@@ -15,6 +15,7 @@ export interface Environment {
+ 
+     readonly url: string;
+     readonly backend: DefaultTypes.Backend;
++    readonly loginWithUsername: boolean;
+ 
+     readonly production: boolean;
+     debugMode: boolean;
+diff --git a/ui/src/themes/openems/environments/backend-dev.ts b/ui/src/themes/openems/environments/backend-dev.ts
+index 962ce0115..0d37c3b95 100644
+--- a/ui/src/themes/openems/environments/backend-dev.ts
++++ b/ui/src/themes/openems/environments/backend-dev.ts
+@@ -9,5 +9,6 @@ export const environment: Environment = {
+ 
+         production: false,
+         debugMode: true,
++        loginWithUsername: false,
+     },
+ };
+diff --git a/ui/src/themes/openems/environments/backend-docker.ts b/ui/src/themes/openems/environments/backend-docker.ts
+index 078845ad9..ac94026dd 100644
+--- a/ui/src/themes/openems/environments/backend-docker.ts
++++ b/ui/src/themes/openems/environments/backend-docker.ts
+@@ -16,5 +16,6 @@ export const environment: Environment = {
+ 
+         production: true,
+         debugMode: false,
++        loginWithUsername: false,
+     },
+ };
+diff --git a/ui/src/themes/openems/environments/backend-prod.ts b/ui/src/themes/openems/environments/backend-prod.ts
+index 70ec8f4e5..d9dc23fb1 100644
+--- a/ui/src/themes/openems/environments/backend-prod.ts
++++ b/ui/src/themes/openems/environments/backend-prod.ts
+@@ -9,5 +9,6 @@ export const environment: Environment = {
+ 
+         production: true,
+         debugMode: false,
++        loginWithUsername: false,
+     },
+ };
+diff --git a/ui/src/themes/openems/environments/edge-dev.ts b/ui/src/themes/openems/environments/edge-dev.ts
+index 30ee3318f..94243097a 100644
+--- a/ui/src/themes/openems/environments/edge-dev.ts
++++ b/ui/src/themes/openems/environments/edge-dev.ts
+@@ -9,5 +9,6 @@ export const environment: Environment = {
+ 
+         production: false,
+         debugMode: true,
++        loginWithUsername: false,
+     },
+ };
+diff --git a/ui/src/themes/openems/environments/edge-docker.ts b/ui/src/themes/openems/environments/edge-docker.ts
+index 59371199c..fa25364eb 100644
+--- a/ui/src/themes/openems/environments/edge-docker.ts
++++ b/ui/src/themes/openems/environments/edge-docker.ts
+@@ -16,5 +16,6 @@ export const environment: Environment = {
+ 
+         production: true,
+         debugMode: false,
++        loginWithUsername: false,
+     },
+ };
+diff --git a/ui/src/themes/openems/environments/edge-prod.ts b/ui/src/themes/openems/environments/edge-prod.ts
+index 32dda90b2..2701e288e 100644
+--- a/ui/src/themes/openems/environments/edge-prod.ts
++++ b/ui/src/themes/openems/environments/edge-prod.ts
+@@ -9,5 +9,6 @@ export const environment: Environment = {
+ 
+         production: true,
+         debugMode: false,
++        loginWithUsername: false,
+     },
+ };
+diff --git a/ui/src/themes/openems/environments/gitpod.ts b/ui/src/themes/openems/environments/gitpod.ts
+index 88de7c57c..540ae829a 100644
+--- a/ui/src/themes/openems/environments/gitpod.ts
++++ b/ui/src/themes/openems/environments/gitpod.ts
+@@ -10,5 +10,6 @@ export const environment: Environment = {
+ 
+         production: false,
+         debugMode: true,
++        loginWithUsername: false,
+     },
+ };

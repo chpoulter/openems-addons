@@ -11,6 +11,8 @@ Just build with maven clean package and you'll get a jar file that can be added 
 
 You will need a local maven repository containing OpenEMS bundles. Use maven-repo to generate one.
 
+The included patch has to be applied to OpenEMS code, as the edge only has a password field for login.
+
 ## LDAP example structure
 
 ```
