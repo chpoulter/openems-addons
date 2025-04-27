@@ -107,6 +107,7 @@
 
   <modules>
     <module>controller-para14a</module>
+    <module>evcs-heidelberg-energy-control</module>
     <module>io-bestep</module>
     <module>metadata-ldap</module>
     <module>meter-bgetech-ds100</module>
