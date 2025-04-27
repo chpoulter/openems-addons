@@ -168,7 +168,6 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
                 break;
 
             case EdgeEventConstants.TOPIC_CYCLE_AFTER_CONTROLLERS:
-                checkPvInverterLimit();
                 checkEvcsMaximumAllowedPowerToDistribute();
                 break;
         }
@@ -180,6 +179,8 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
         logDebug("consumption managment: " + consumption);
 
         calculatePvInverterActivePowerLimit();
+        checkPvInverterLimit();
+
         calculateEvcsClusterMaximumAllowedPowerToDistribute();
     }
 
