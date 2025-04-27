@@ -228,7 +228,12 @@
         <version>${openems.version}</version>
         <scope>provided</scope>
       </dependency>
-
+      <dependency>
+        <groupId>io.openems</groupId>
+        <artifactId>edge.timedata.api</artifactId>
+        <version>${openems.version}</version>
+        <scope>provided</scope>
+      </dependency>
 
       <!-- Testing -->
       <dependency>

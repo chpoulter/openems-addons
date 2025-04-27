@@ -27,7 +27,8 @@ FROM alpine/git AS git
 
 RUN git clone https://github.com/OpenEMS/openems.git /openems
 WORKDIR /openems
-RUN git checkout 2025.3.0
+#RUN git checkout 2025.4.0
+RUN git checkout develop
 
 ### gradle: build
 FROM gradle:jdk21 AS gradle
@@ -36,7 +37,7 @@ COPY patches /tmp/patches
 COPY --from=git /openems /openems
 WORKDIR /openems
 
-RUN for i in /tmp/patches/*; do echo "Apply patch $i"; git apply -v $i; done
+RUN for i in /tmp/patches/*.patch; do echo "Apply patch $i"; git apply -v $i; done
 RUN ./gradlew build
 
 RUN mkdir -p /jars
@@ -66,6 +67,7 @@ RUN for f in io.openems.common.jar \
              io.openems.edge.evcs.api.jar \
              io.openems.edge.evcs.cluster.jar \
              io.openems.edge.ess.api.jar \
+             io.openems.edge.timedata.api.jar \
    ; do cp -v $f /jars2; done
 
 WORKDIR /jars2
