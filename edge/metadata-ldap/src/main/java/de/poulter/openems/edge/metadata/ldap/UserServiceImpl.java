@@ -46,6 +46,8 @@ import org.osgi.service.metatype.annotations.Designate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.openems.common.exceptions.OpenemsError;
+import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.session.Language;
 import io.openems.common.session.Role;
 import io.openems.edge.common.user.User;
@@ -242,5 +244,10 @@ public class UserServiceImpl implements UserService {
 
             return Optional.empty();
         }
+    }
+
+    @Override
+    public void registerAdminUser(String setupKey, String username, String password) throws OpenemsNamedException {
+        throw new OpenemsNamedException(OpenemsError.GENERIC, "Please manage users using your favorite LDAP administration tool.");
     }
 }
