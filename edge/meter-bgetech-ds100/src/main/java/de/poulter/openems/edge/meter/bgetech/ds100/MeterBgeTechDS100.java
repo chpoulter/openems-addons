@@ -27,6 +27,8 @@ import io.openems.common.channel.PersistencePriority;
 import io.openems.common.channel.Unit;
 import io.openems.common.types.OpenemsType;
 import io.openems.edge.common.channel.Doc;
+import io.openems.edge.common.channel.LongReadChannel;
+import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.modbusslave.ModbusSlave;
 import io.openems.edge.meter.api.ElectricityMeter;
@@ -97,5 +99,41 @@ public interface MeterBgeTechDS100 extends ElectricityMeter, OpenemsComponent, M
         public Doc doc() {
             return this.doc;
         }
+    }
+
+    // ACTIVE_TOTAL_ENERGY
+    public default LongReadChannel getActiveTotalEnergyChannel() {
+        return this.channel(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY);
+    }
+
+    public default Value<Long> getActiveTotalEnergy() {
+        return this.getActiveTotalEnergyChannel().value();
+    }
+
+    // ACTIVE_TOTAL_ENERGY_L1
+    public default LongReadChannel getActiveTotalEnergyL1Channel() {
+        return this.channel(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY_L1);
+    }
+
+    public default Value<Long> getActiveTotalEnergyL1() {
+        return this.getActiveTotalEnergyL1Channel().value();
+    }
+
+    // ACTIVE_TOTAL_ENERGY_L2
+    public default LongReadChannel getActiveTotalEnergyL2Channel() {
+        return this.channel(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY_L2);
+    }
+
+    public default Value<Long> getActiveTotalEnergyL2() {
+        return this.getActiveTotalEnergyL2Channel().value();
+    }
+
+    // ACTIVE_TOTAL_ENERGY_L3
+    public default LongReadChannel getActiveTotalEnergyL3Channel() {
+        return this.channel(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY_L3);
+    }
+
+    public default Value<Long> getActiveTotalEnergyL3() {
+        return this.getActiveTotalEnergyL3Channel().value();
     }
 }

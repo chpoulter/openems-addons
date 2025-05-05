@@ -53,8 +53,6 @@ import io.openems.edge.bridge.modbus.api.element.SignedDoublewordElement;
 import io.openems.edge.bridge.modbus.api.element.UnsignedDoublewordElement;
 import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;
 import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
-import io.openems.edge.common.channel.LongReadChannel;
-import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.modbusslave.ModbusSlave;
 import io.openems.edge.common.modbusslave.ModbusSlaveTable;
@@ -67,7 +65,7 @@ import io.openems.edge.meter.api.ElectricityMeter;
     immediate = true,
     configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public class MeterBgeTechDS100Impl extends AbstractOpenemsModbusComponent implements 
+public class MeterBgeTechDS100Impl extends AbstractOpenemsModbusComponent implements
     MeterBgeTechDS100, ElectricityMeter, ModbusComponent, OpenemsComponent, ModbusSlave
 {
 
@@ -76,7 +74,7 @@ public class MeterBgeTechDS100Impl extends AbstractOpenemsModbusComponent implem
     @Reference
     private ConfigurationAdmin cm;
 
-    private MeterType meterType = MeterType.PRODUCTION;    
+    private MeterType meterType = MeterType.PRODUCTION;
     private boolean invert = false;
 
     public MeterBgeTechDS100Impl() {
@@ -227,7 +225,7 @@ public class MeterBgeTechDS100Impl extends AbstractOpenemsModbusComponent implem
                 new DummyRegisterElement(0x0570, 0x0577),
                 m(ChannelMappings.B_PHASE_REVERSE_ACTIVE_ENERGY.channelId(invert),   new UnsignedDoublewordElement(0x0578), SCALE_FACTOR_1),
 
-                new DummyRegisterElement(0x057A, 0x0581),                
+                new DummyRegisterElement(0x057A, 0x0581),
                 m(MeterBgeTechDS100.ChannelId.REACTIVE_TOTAL_ENERGY_L2,              new SignedDoublewordElement(0x0582), SCALE_FACTOR_1),
                 new DummyRegisterElement(0x0584, 0x058B),
                 m(ChannelMappings.B_PHASE_FORWARD_REACTIVE_ENERGY.channelId(invert), new SignedDoublewordElement(0x058C), SCALE_FACTOR_1),
@@ -271,38 +269,6 @@ public class MeterBgeTechDS100Impl extends AbstractOpenemsModbusComponent implem
             ElectricityMeter.getModbusSlaveNatureTable(accessMode)
         );
 
-    }
-
-    public LongReadChannel getActiveTotalEnergyChannel() {
-        return this.channel(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY);
-    }
-
-    public LongReadChannel getActiveTotalEnergyL1Channel() {
-        return this.channel(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY);
-    }
-
-    public LongReadChannel getActiveTotalEnergyL2Channel() {
-        return this.channel(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY);
-    }
-
-    public LongReadChannel getActiveTotalEnergyL3Channel() {
-        return this.channel(MeterBgeTechDS100.ChannelId.ACTIVE_TOTAL_ENERGY);
-    }
-
-    public Value<Long> getActiveTotalEnergy() {
-        return this.getActiveTotalEnergyChannel().value();
-    }
-
-    public Value<Long> getActiveTotalEnergyL1() {
-        return this.getActiveTotalEnergyL1Channel().value();
-    }
-
-    public Value<Long> getActiveTotalEnergyL2() {
-        return this.getActiveTotalEnergyL2Channel().value();
-    }
-
-    public Value<Long> getActiveTotalEnergyL3() {
-        return this.getActiveTotalEnergyL3Channel().value();
     }
 
 }
