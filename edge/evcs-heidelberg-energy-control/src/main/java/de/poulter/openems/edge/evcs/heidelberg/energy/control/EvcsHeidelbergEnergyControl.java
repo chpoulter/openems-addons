@@ -37,9 +37,10 @@ import io.openems.edge.common.channel.StateChannel;
 import io.openems.edge.common.channel.WriteChannel;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.evcs.api.Evcs;
+import io.openems.edge.evcs.api.ManagedEvcs;
 import io.openems.edge.meter.api.ElectricityMeter;
 
-public interface EvcsHeidelbergEnergyControl extends Evcs, ElectricityMeter, OpenemsComponent {
+public interface EvcsHeidelbergEnergyControl extends ManagedEvcs, Evcs, ElectricityMeter, OpenemsComponent {
 
     public void applyConfigurationNow();
 

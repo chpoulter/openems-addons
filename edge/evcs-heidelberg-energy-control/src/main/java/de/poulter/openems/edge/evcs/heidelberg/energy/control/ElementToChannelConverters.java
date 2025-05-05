@@ -32,20 +32,24 @@ import io.openems.edge.evcs.api.Phases;
 
 public class ElementToChannelConverters {
 
-    public static final ElementToChannelConverter AMPERE_TO_WATT = new ElementToChannelConverter(
-        current -> {
-            Integer currentAsInteger = TypeUtils.getAsType(OpenemsType.INTEGER, current);
-            if (currentAsInteger == null) return null;
+    public static final ElementToChannelConverter AMPERE_TO_WATT = new ElementToChannelConverter( current -> {
+        Integer currentAsInteger = TypeUtils.getAsType(OpenemsType.INTEGER, current);
+        if (currentAsInteger == null) return null;
 
-            return EvcsUtils.ampereToWatt(currentAsInteger, Phases.THREE_PHASE.getValue());
-        }
-    );
+        return EvcsUtils.ampereToWatt(currentAsInteger, Phases.THREE_PHASE.getValue());
+    });
 
-    public static final ElementToChannelConverter CHARGING_STATE = new ElementToChannelConverter(
-        stateCode -> OptionsEnum.getOption(ChargingState.class, TypeUtils.<Integer>getAsType(OpenemsType.INTEGER, stateCode))
-    );
+    public static final ElementToChannelConverter CHARGING_STATE = new ElementToChannelConverter( stateCode -> {
+        Integer stateCodeAsInteger = TypeUtils.<Integer>getAsType(OpenemsType.INTEGER, stateCode);
+        if (stateCodeAsInteger == null) return null;
 
-    public static final ElementToChannelConverter LOCK_STATE = new ElementToChannelConverter(
-        stateCode -> OptionsEnum.getOptionOrUndefined(LockState.class, TypeUtils.<Integer>getAsType(OpenemsType.INTEGER, stateCode))
-    );
+        return OptionsEnum.getOption(ChargingState.class, stateCodeAsInteger);
+    });
+
+    public static final ElementToChannelConverter LOCK_STATE = new ElementToChannelConverter( stateCode -> {
+        Integer stateCodeAsInteger = TypeUtils.<Integer>getAsType(OpenemsType.INTEGER, stateCode);
+        if (stateCodeAsInteger == null) return null;
+
+        return OptionsEnum.getOption(LockState.class, stateCodeAsInteger);
+    });
 }

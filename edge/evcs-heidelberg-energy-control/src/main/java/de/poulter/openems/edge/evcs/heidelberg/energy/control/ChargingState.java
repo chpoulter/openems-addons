@@ -28,16 +28,16 @@ import io.openems.edge.evcs.api.Status;
 
 public enum ChargingState implements OptionsEnum {
 
-    A1( 2, Plug.UNPLUGGED, Status.NOT_READY_FOR_CHARGING, "No vehicle plugged, Charging disabled"),
-    B1( 4, Plug.PLUGGED,   Status.NOT_READY_FOR_CHARGING, "Vehicle plugged without charging request, Charging disabled"),
-    C1( 6, Plug.PLUGGED,   Status.NOT_READY_FOR_CHARGING, "Vehicle plugged with charging request, Charging disabled"),
-    A2( 3, Plug.UNPLUGGED, Status.READY_FOR_CHARGING,     "No vehicle plugged, Charging enabled"),
-    B2( 5, Plug.PLUGGED,   Status.READY_FOR_CHARGING,     "Vehicle plugged without charging request, Charging enabled"),
-    C2( 7, Plug.PLUGGED,   Status.CHARGING,               "Vehicle plugged with charging request, Charging enabled"),
-    DE( 8, Plug.UNDEFINED, Status.ERROR,                  "derating"),
-    E ( 9, Plug.UNDEFINED, Status.ERROR,                  "E"),
-    F (10, Plug.UNDEFINED, Status.ERROR,                  "F"),
-    ER(11, Plug.UNDEFINED, Status.ERROR,                  "ERR"),
+    A1( 2, Plug.UNPLUGGED, Status.CHARGING_REJECTED,  "No vehicle plugged, Charging disabled"),
+    B1( 4, Plug.PLUGGED,   Status.CHARGING_REJECTED,  "Vehicle plugged without charging request, Charging disabled"),
+    C1( 6, Plug.PLUGGED,   Status.CHARGING_REJECTED,  "Vehicle plugged with charging request, Charging disabled"),
+    A2( 3, Plug.UNPLUGGED, Status.READY_FOR_CHARGING, "No vehicle plugged, Charging enabled"),
+    B2( 5, Plug.PLUGGED,   Status.READY_FOR_CHARGING, "Vehicle plugged without charging request, Charging enabled"),
+    C2( 7, Plug.PLUGGED,   Status.CHARGING,           "Vehicle plugged with charging request, Charging enabled"),
+    DE( 8, Plug.UNDEFINED, Status.ERROR,              "derating"),
+    E ( 9, Plug.UNDEFINED, Status.ERROR,              "E"),
+    F (10, Plug.UNDEFINED, Status.ERROR,              "F"),
+    ER(11, Plug.UNDEFINED, Status.ERROR,              "ERR"),
 
     ;
 

@@ -39,6 +39,7 @@ public enum Plug implements OptionsEnum {
 
     private Plug(int value, boolean connected, String name) {
         this.value = value;
+        this.connected = connected;
         this.name = name;
     }
 
