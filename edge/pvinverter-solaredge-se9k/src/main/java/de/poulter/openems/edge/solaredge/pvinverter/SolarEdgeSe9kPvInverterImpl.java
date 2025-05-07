@@ -23,8 +23,10 @@
 
 package de.poulter.openems.edge.solaredge.pvinverter;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.ComponentContext;
@@ -52,12 +54,14 @@ import io.openems.edge.bridge.modbus.api.BridgeModbus;
 import io.openems.edge.bridge.modbus.api.ModbusComponent;
 import io.openems.edge.bridge.modbus.api.element.DummyRegisterElement;
 import io.openems.edge.bridge.modbus.api.element.FloatDoublewordElement;
+import io.openems.edge.bridge.modbus.api.element.ModbusElement;
 import io.openems.edge.bridge.modbus.api.element.SignedDoublewordElement;
 import io.openems.edge.bridge.modbus.api.element.UnsignedDoublewordElement;
 import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;
 import io.openems.edge.bridge.modbus.api.element.WordOrder;
 import io.openems.edge.bridge.modbus.sunspec.DefaultSunSpecModel;
 import io.openems.edge.bridge.modbus.sunspec.SunSpecModel;
+import io.openems.edge.bridge.modbus.sunspec.SunSpecPoint;
 import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.OpenemsComponent;
@@ -83,7 +87,6 @@ import io.openems.edge.pvinverter.sunspec.SunSpecPvInverter;
 public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter implements
     SolarEdgeSe9kPvInverter, SunSpecPvInverter, ManagedSymmetricPvInverter, ElectricityMeter, ModbusComponent, OpenemsComponent, EventHandler, ModbusSlave
 {
-
     private static final Logger log = LoggerFactory.getLogger(SolarEdgeSe9kPvInverterImpl.class);
 
     // SunSpec models supported by SE9K
@@ -213,34 +216,37 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
     protected void onSunSpecInitializationCompleted() {
         super.onSunSpecInitializationCompleted();
 
-        logDebug("Initializing SE9K specific registers...");
+        logInfo(log, "Initializing SE9K specific registers...");
 
         getModbusProtocol().addTasks(
             TaskBuilder.buildFC3ReadRegistersTask(
-                m(SolarEdgeSe9kPvInverter.ChannelId.PC_RRCR_STATE, new UnsignedWordElement(0xF000)),
-                m(SolarEdgeSe9kPvInverter.ChannelId.PC_ACTIVE_POWER_LIMIT, new UnsignedWordElement(0xF001)),
-                m(SolarEdgeSe9kPvInverter.ChannelId.PC_COS_PHI, new FloatDoublewordElement(0xF002).wordOrder(WordOrder.LSWMSW))
+                m(SolarEdgeSe9kPvInverter.ChannelId.PC_RRCR_STATE,              new UnsignedWordElement(0xF000)),
+                m(SolarEdgeSe9kPvInverter.ChannelId.PC_ACTIVE_POWER_LIMIT,      new UnsignedWordElement(0xF001)),
+                m(SolarEdgeSe9kPvInverter.ChannelId.PC_COS_PHI,                 new FloatDoublewordElement(0xF002).wordOrder(WordOrder.LSWMSW))
             ),
+
             TaskBuilder.buildFC3ReadRegistersTask(
                 m(SolarEdgeSe9kPvInverter.ChannelId.PC_PWR_FRQ_DERATING_CONFIG, new SignedDoublewordElement(0xF102).wordOrder(WordOrder.LSWMSW)),
-                m(SolarEdgeSe9kPvInverter.ChannelId.PC_REACTIVE_PWR_CONFIG, new SignedDoublewordElement(0xF104).wordOrder(WordOrder.LSWMSW)),
-                m(SolarEdgeSe9kPvInverter.ChannelId.PC_REACT_PW_ITER_TIME, new UnsignedDoublewordElement(0xF106).wordOrder(WordOrder.LSWMSW))
+                m(SolarEdgeSe9kPvInverter.ChannelId.PC_REACTIVE_PWR_CONFIG,     new SignedDoublewordElement(0xF104).wordOrder(WordOrder.LSWMSW)),
+                m(SolarEdgeSe9kPvInverter.ChannelId.PC_REACT_PW_ITER_TIME,      new UnsignedDoublewordElement(0xF106).wordOrder(WordOrder.LSWMSW))
             ),
+
             TaskBuilder.buildFC3ReadRegistersTask(
                 m(SolarEdgeSe9kPvInverter.ChannelId.PC_ADVANCED_PWR_CONTROL_EN, new SignedDoublewordElement(0xF142).wordOrder(WordOrder.LSWMSW)),
-                m(SolarEdgeSe9kPvInverter.ChannelId.PC_FRT_EN, new SignedDoublewordElement(0xF144).wordOrder(WordOrder.LSWMSW))
+                m(SolarEdgeSe9kPvInverter.ChannelId.PC_FRT_EN,                  new SignedDoublewordElement(0xF144).wordOrder(WordOrder.LSWMSW))
             ),
+
             TaskBuilder.buildFC3ReadRegistersTask(
-                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_ENABLE_DPC, new UnsignedWordElement(0xF300)),
+                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_ENABLE_DPC,             new UnsignedWordElement(0xF300)),
                 new DummyRegisterElement(0xF301, 0xF303),
-                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_MAX_ACTIVE_POWER, new FloatDoublewordElement(0xF304).wordOrder(WordOrder.LSWMSW)),
-                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_MAX_REACTIVE_POWER, new FloatDoublewordElement(0xF306).wordOrder(WordOrder.LSWMSW)),
-                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_ACTIVE_REACTIVE_PREF, new UnsignedWordElement(0xF308)),
-                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_COSPHI_Q_PREF, new UnsignedWordElement(0xF309)),
+                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_MAX_ACTIVE_POWER,       new FloatDoublewordElement(0xF304).wordOrder(WordOrder.LSWMSW)),
+                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_MAX_REACTIVE_POWER,     new FloatDoublewordElement(0xF306).wordOrder(WordOrder.LSWMSW)),
+                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_ACTIVE_REACTIVE_PREF,   new UnsignedWordElement(0xF308)),
+                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_COSPHI_Q_PREF,          new UnsignedWordElement(0xF309)),
                 new DummyRegisterElement(0xF30A, 0xF30B),
-                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_ACTIVE_POWER_LIMIT, new FloatDoublewordElement(0xF30C).wordOrder(WordOrder.LSWMSW)),
-                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_REACTIVE_POWER_LIMIT, new FloatDoublewordElement(0xF30E).wordOrder(WordOrder.LSWMSW)),
-                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_COMMAND_TIMEOUT, new UnsignedDoublewordElement(0xF310).wordOrder(WordOrder.LSWMSW))
+                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_ACTIVE_POWER_LIMIT,     new FloatDoublewordElement(0xF30C).wordOrder(WordOrder.LSWMSW)),
+                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_REACTIVE_POWER_LIMIT,   new FloatDoublewordElement(0xF30E).wordOrder(WordOrder.LSWMSW)),
+                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_COMMAND_TIMEOUT,        new UnsignedDoublewordElement(0xF310).wordOrder(WordOrder.LSWMSW))
             )
         );
 
@@ -252,7 +258,7 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
             )
         );
 
-        logDebug("Initializing SE9K specific registers finished.");
+        logInfo(log, "Initializing SE9K specific registers finished.");
     }
 
     @Override
@@ -327,7 +333,7 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
         logDebug("epcDynamicActivePowerLimit " + epcDynamicActivePowerLimit);
 
         // apply mean
-        activePowerLimitWeightedMean.addValue(epcDynamicActivePowerLimit);
+        activePowerLimitWeightedMean.addValue(epcDynamicActivePowerLimit, 3, 1);
         epcDynamicActivePowerLimit = activePowerLimitWeightedMean.getMean();
         logDebug("epcDynamicActivePowerLimit " + epcDynamicActivePowerLimit);
 
@@ -351,4 +357,43 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
         }
     }
 
+
+    // Although values can be read from theses fields the SolarEdge Se9k 
+    // documentation does not mention them and values seem to be not
+    // useful. For this reason they are blacklisted here to avoid false
+    // alerts in OpenEMS.
+
+    private static final Set<SunSpecPoint> BLACKLIST = Set.of(
+        DefaultSunSpecModel.S101.EVT1,
+        DefaultSunSpecModel.S101.EVT2,
+        DefaultSunSpecModel.S101.EVT_VND1,
+        DefaultSunSpecModel.S101.EVT_VND2,
+        DefaultSunSpecModel.S101.EVT_VND3,
+        DefaultSunSpecModel.S101.EVT_VND4,
+
+        DefaultSunSpecModel.S102.EVT1,
+        DefaultSunSpecModel.S102.EVT2,
+        DefaultSunSpecModel.S102.EVT_VND1,
+        DefaultSunSpecModel.S102.EVT_VND2,
+        DefaultSunSpecModel.S102.EVT_VND3,
+        DefaultSunSpecModel.S102.EVT_VND4,
+
+        DefaultSunSpecModel.S103.EVT1,
+        DefaultSunSpecModel.S103.EVT2,
+        DefaultSunSpecModel.S103.EVT_VND1,
+        DefaultSunSpecModel.S103.EVT_VND2,
+        DefaultSunSpecModel.S103.EVT_VND3,
+        DefaultSunSpecModel.S103.EVT_VND4
+    );
+
+    @Override
+    protected List<ModbusElement> addModbusElementAndChannels(int startAddress, SunSpecModel model, SunSpecPoint sunSpecPoint) {
+        if (BLACKLIST.contains(sunSpecPoint)) {
+            int length = sunSpecPoint.get().type.getLength();
+
+            return List.of(new DummyRegisterElement(startAddress, startAddress + length - 1));
+        }
+
+        return super.addModbusElementAndChannels(startAddress, model, sunSpecPoint);
+    }
 }

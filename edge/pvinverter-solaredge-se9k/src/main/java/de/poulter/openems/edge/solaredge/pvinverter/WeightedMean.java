@@ -41,6 +41,26 @@ public class WeightedMean {
         this.mean = new Mean();
     }
 
+    public void addValue(double value, int countLower, int countHigher) {
+        double currentMean = getMean();
+
+        if ((currentMean * 1.1) < value) {
+            addValue(value, countHigher);
+
+        } else if ((currentMean * 0.9) > value) {
+            addValue(value, countLower);
+
+        } else {
+            addValue(value);
+        }
+    }
+
+    public void addValue(double value, int count) {
+        for (int i = 0; i < count ; i++) {
+            addValue(value);
+        }
+    }
+
     public void addValue(double value) {
         if (ds == null) {
             double[] initial = DoubleStream.generate(() -> value).limit(size).toArray();
