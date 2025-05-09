@@ -43,10 +43,9 @@
 
   <dependencies> 
 
-    <!-- misc -->
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-math3</artifactId>
+      <groupId>de.poulter.openems</groupId>
+      <artifactId>lib</artifactId>
     </dependency>
 
     <!-- modbus -->

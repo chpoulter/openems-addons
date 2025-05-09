@@ -1,5 +1,5 @@
 /*
- *   OpenEMS Paragraph 14a Controller
+ *   OpenEMS Addons Lib
  *
  *   Written by Christian Poulter.
  *   Copyright (C) 2025 Christian Poulter <devel(at)poulter.de>
@@ -21,7 +21,7 @@
  *
  */
 
-package de.poulter.openems.edge.controller.para14a;
+package de.poulter.openems.lib.mean;
 
 import java.util.stream.DoubleStream;
 
@@ -45,6 +45,26 @@ public class WeightedMean {
         ds = null;
     }
 
+    public void addValue(double value, int countLower, int countHigher) {
+        double currentMean = getMean();
+
+        if ((currentMean * 1.1) < value) {
+            addValue(value, countHigher);
+
+        } else if ((currentMean * 0.9) > value) {
+            addValue(value, countLower);
+
+        } else {
+            addValue(value);
+        }
+    }
+
+    public void addValue(double value, int count) {
+        for (int i = 0; i < count ; i++) {
+            addValue(value);
+        }
+    }
+
     public void addValue(double value) {
         if (ds == null) {
             double[] initial = DoubleStream.generate(() -> value).limit(size).toArray();
@@ -56,10 +76,14 @@ public class WeightedMean {
         ds.addValue(value);
     }
 
-    public double getMean() {
-        if (ds == null) return 0d;
+    public double nextValue(double value, int countLower, int countHigher) {
+        addValue(value, countLower, countHigher);
+        return getMean();
+    }
 
-        return mean.evaluate(ds.getValues(), weights);
+    public double nextValue(double value, int count) {
+        addValue(value, count);
+        return getMean();
     }
 
     public double nextValue(double value) {
@@ -67,4 +91,9 @@ public class WeightedMean {
         return getMean();
     }
 
+    public double getMean() {
+        if (ds == null) return 0d;
+
+        return mean.evaluate(ds.getValues(), weights);
+    }
 }

@@ -77,6 +77,12 @@
   <dependencyManagement>
     <dependencies>
 
+      <dependency>
+        <groupId>de.poulter.openems</groupId>
+        <artifactId>lib</artifactId>
+        <version>1.0.0</version>
+      </dependency>
+
       <!-- misc -->
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -88,7 +94,7 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-math3</artifactId>
         <version>3.6.1</version>
-        <scope>provided</scope>
+        <scope>compile</scope>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
@@ -447,6 +453,7 @@
 
   <modules>
     <module>maven-repo</module>
+    <module>lib</module>
     <module>backend</module>
     <module>edge</module>
   </modules>

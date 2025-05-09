@@ -42,6 +42,7 @@ import org.osgi.service.metatype.annotations.Designate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.poulter.openems.lib.mean.WeightedMean;
 import io.openems.common.channel.Level;
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.types.ChannelAddress;
@@ -95,13 +96,13 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
     @Reference(policy = ReferencePolicy.STATIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.MANDATORY)
     private ManagedSymmetricPvInverter pvInverter;
     private Optional<Integer> pvInverterActivePowerLimit = Optional.empty();
-    private WeightedMean pvInverterActivePowerLimitMean = new WeightedMean(15d,15d,15d,15d,20d,30d,40d,50d,60d,75d);
+    private WeightedMean pvInverterActivePowerLimitMean = new WeightedMean(15d, 15d, 15d, 15d, 20d, 30d, 40d, 50d, 60d, 75d);
 
     // evcs
     @Reference(policy = ReferencePolicy.STATIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.MANDATORY)
     private ManagedEvcsCluster evcsCluster;
     private Optional<Integer> evcsClusterMaximumAllowedPowerToDistribute = Optional.empty();
-    private WeightedMean evcsClusterMaximumAllowedPowerToDistributeMean = new WeightedMean(15d,15d,15d,15d,20d,30d,40d,50d,60d,75d);
+    private WeightedMean evcsClusterMaximumAllowedPowerToDistributeMean = new WeightedMean(15d ,15d ,15d ,15d ,20d ,30d ,40d ,50d ,60d ,75d);
 
     // misc
     private ProductionManagment production = ProductionManagment.OFF;

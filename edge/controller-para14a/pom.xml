@@ -35,7 +35,7 @@
   <artifactId>edge-controller-para14a</artifactId>
   <packaging>bundle</packaging>
 
-  <name>OpenEMS Meter Paragraph 14a Controller</name>
+  <name>OpenEMS Controller Paragraph 14a Controller</name>
   <description>Implements some support for §14a EnWG in OpenEMS with relais interface.</description>
 
   <properties>
@@ -44,12 +44,12 @@
 
   <dependencies> 
 
-    <!-- misc -->
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-math3</artifactId>
+      <groupId>de.poulter.openems</groupId>
+      <artifactId>lib</artifactId>
     </dependency>
 
+    <!-- misc -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
