@@ -313,7 +313,7 @@ public class EvcsHeidelbergEnergyControlImpl extends AbstractOpenemsModbusCompon
         setMaxCurrent(current);
         _setSetChargePowerLimit(power);
 
-        logInfo(log, "applyChargePowerLimit ------------------> " + power + " => "+ current);
+        logInfo(log, "applyChargePowerLimit ------------------> " + power + "W => "+ current + "mA");
 
         return true;
     }
