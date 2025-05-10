@@ -43,7 +43,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.poulter.openems.lib.mean.WeightedMean;
-import io.openems.common.channel.Level;
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.types.ChannelAddress;
 import io.openems.edge.common.channel.BooleanReadChannel;
@@ -58,6 +57,9 @@ import io.openems.edge.controller.api.Controller;
 import io.openems.edge.evcs.api.ManagedEvcsCluster;
 import io.openems.edge.meter.api.ElectricityMeter;
 import io.openems.edge.pvinverter.api.ManagedSymmetricPvInverter;
+import io.openems.edge.timedata.api.Timedata;
+import io.openems.edge.timedata.api.TimedataProvider;
+import io.openems.edge.timedata.api.utils.CalculateActiveTime;
 
 @Designate(ocd = Config.class, factory = true)
 @Component(
@@ -70,7 +72,7 @@ import io.openems.edge.pvinverter.api.ManagedSymmetricPvInverter;
     EdgeEventConstants.TOPIC_CYCLE_AFTER_CONTROLLERS
 })
 public class ControllerParagraph14aImpl extends AbstractOpenemsComponent 
-    implements ControllerParagraph14a, Controller, OpenemsComponent, EventHandler
+    implements ControllerParagraph14a, Controller, OpenemsComponent, TimedataProvider, EventHandler
 {
 
     private static final Logger log = LoggerFactory.getLogger(ControllerParagraph14aImpl.class);
@@ -80,6 +82,9 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
 
     @Reference
     private ComponentManager componentManager;
+
+    @Reference(policy = ReferencePolicy.DYNAMIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.OPTIONAL)
+    private volatile Timedata timedata = null;
 
     // Relais
     private RelaisMode relaisMode;
@@ -97,12 +102,14 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
     private ManagedSymmetricPvInverter pvInverter;
     private Optional<Integer> pvInverterActivePowerLimit = Optional.empty();
     private WeightedMean pvInverterActivePowerLimitMean = new WeightedMean(15d, 15d, 15d, 15d, 20d, 30d, 40d, 50d, 60d, 75d);
+    private CalculateActiveTime pvInverterRestrictionTime = new CalculateActiveTime(this, ControllerParagraph14a.ChannelId.PVINVERTER_RESTRICTION_TIME);
 
     // evcs
     @Reference(policy = ReferencePolicy.STATIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.MANDATORY)
     private ManagedEvcsCluster evcsCluster;
     private Optional<Integer> evcsClusterMaximumAllowedPowerToDistribute = Optional.empty();
     private WeightedMean evcsClusterMaximumAllowedPowerToDistributeMean = new WeightedMean(15d ,15d ,15d ,15d ,20d ,30d ,40d ,50d ,60d ,75d);
+    private CalculateActiveTime evcsRestrictionTime = new CalculateActiveTime(this, ControllerParagraph14a.ChannelId.EVCS_RESTRICTION_TIME);
 
     // misc
     private ProductionManagment production = ProductionManagment.OFF;
@@ -144,7 +151,7 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
         production = ProductionManagment.OFF;
         consumption = ConsumptionManagment.OFF;
 
-        setRunStatus(Level.INFO);
+        getRunFailedChannel().setNextValue(false);
     }
 
     @Override
@@ -155,7 +162,24 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
         production = ProductionManagment.OFF;
         consumption = ConsumptionManagment.OFF;
 
-        setRunStatus(Level.OK);
+        getRunFailedChannel().setNextValue(false);
+    }
+
+    @Override
+    public Timedata getTimedata() {
+        return timedata;
+    }
+
+    private void logDebug(String message) {
+        if (debugMode) {
+            logInfo(log, message);
+        }
+    }
+
+    @Override
+    public String debugLog() {
+        return "PM:" + production + ", " + pvInverterActivePowerLimit.orElse(null) + 
+               "|CM: " + consumption + ", " + evcsClusterMaximumAllowedPowerToDistribute.orElse(null);
     }
 
     @Override
@@ -164,7 +188,6 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
 
         switch (event.getTopic()) {
             case EdgeEventConstants.TOPIC_CYCLE_BEFORE_CONTROLLERS:
-                setRunStatus(Level.OK);
                 mapRelaisInputsToManagementModes();
                 break;
 
@@ -179,23 +202,16 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
         logDebug("production managment:  " + production);
         logDebug("consumption managment: " + consumption);
 
+        getRunFailedChannel().setNextValue(false);
+
         calculatePvInverterActivePowerLimit();
         checkPvInverterLimit();
 
         calculateEvcsClusterMaximumAllowedPowerToDistribute();
+
+        pvInverterRestrictionTime.update(!ProductionManagment.FULL.equals(production));
+        evcsRestrictionTime.update(!ConsumptionManagment.FULL.equals(consumption));
     }
-
-
-    private void logDebug(String message) {
-        if (debugMode) {
-            logInfo(log, message);
-        }
-    }
-
-    private void setRunStatus(Level level) {
-        channel(Controller.ChannelId.RUN_FAILED).setNextValue(level);
-    }
-
 
     ////////////////////////////////////////////////////////////////////
     //
@@ -210,13 +226,14 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
 
         } catch (IllegalArgumentException | OpenemsNamedException ex) {
             logError(log, "Could not read " + channelAddress + ".");
-            setRunStatus(Level.WARNING);
+            getRunFailedChannel().setNextValue(true);
         }
 
         return null;
     }
 
     private void mapRelaisInputsToManagementModes() {
+
         logDebug("relaisMode: " + relaisMode);
         logDebug("  inputRelais1: " + inputRelais1.getChannelId() + ", " + readInputRelais(inputRelais1));
         logDebug("  inputRelais2: " + inputRelais2.getChannelId() + ", " + readInputRelais(inputRelais2));
@@ -292,7 +309,7 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
 
             default:
                 logWarn(log, "Mode " + relaisMode + " is not supported yet.");
-                setRunStatus(Level.FAULT);
+                getRunFailedChannel().setNextValue(true);
 
             case None:
                 production = ProductionManagment.OFF;
@@ -302,6 +319,14 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
 
         _setProductionManagment(production);
         _setConsumptionManagmentChannel(consumption);
+
+        channel(ControllerParagraph14a.ChannelId.INFO_PVINVERTER_0).setNextValue(ProductionManagment.OFF.equals(production));
+        channel(ControllerParagraph14a.ChannelId.INFO_PVINVERTER_30).setNextValue(ProductionManagment.REDUCED30.equals(production));
+        channel(ControllerParagraph14a.ChannelId.INFO_PVINVERTER_60).setNextValue(ProductionManagment.REDUCED60.equals(production));
+
+        channel(ControllerParagraph14a.ChannelId.INFO_EVCS_OFF).setNextValue(ConsumptionManagment.OFF.equals(consumption));
+        channel(ControllerParagraph14a.ChannelId.INFO_EVCS_UNUSED).setNextValue(ConsumptionManagment.UNUSED.equals(consumption));
+        channel(ControllerParagraph14a.ChannelId.INFO_EVCS_REDUCED).setNextValue(ConsumptionManagment.REDUCED.equals(consumption));
     }
 
 
@@ -315,7 +340,9 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
 
         if (pvInverter == null) {
             logDebug("No pvInverter defined.");
-            setRunStatus(Level.WARNING);
+
+            getRunFailedChannel().setNextValue(true);
+
             return;
         }
 
@@ -334,9 +361,11 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
             if (activePowerLimit.isPresent()) {
                 activePowerLimitChannel.setNextWriteValue(activePowerLimit.get());
             }
+
         } catch (OpenemsNamedException ex) {
             log.error("Could not set new limit on pv inverter.", ex);
-            setRunStatus(Level.FAULT);
+
+            getRunFailedChannel().setNextValue(true);
         }
 
         logDebug("checkPvInverterLimit activePowerLimitChannel "+ activePowerLimitChannel.getNextWriteValue());
@@ -346,51 +375,47 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
         logDebug("-PvInverter--------");
 
         if (pvInverter == null) {
-            setRunStatus(Level.WARNING);
-            pvInverterActivePowerLimitMean.clear();
-
             logWarn(log, "No Pv inverter.");
             logDebug("-------------------");
 
+            getRunFailedChannel().setNextValue(true);
             return;
         }
 
         Value<Integer> pvInverterActivePowerValue = pvInverter.getActivePower();
         if (!pvInverterActivePowerValue.isDefined()) {
-            setRunStatus(Level.WARNING);
-            pvInverterActivePowerLimitMean.clear();
-
             logWarn(log, "Pv inverter has no active power defined.");
             logDebug("-------------------");
 
+            getRunFailedChannel().setNextValue(true);
             return;
         }
+
         int pvInverterActivePower = pvInverterActivePowerValue.get();
         _setPvInverterActivePower(pvInverterActivePower);
         logDebug("pvInverterActivePower " + pvInverterActivePower);
 
         Value<Integer> pvInverterMaxActivePowerValue = pvInverter.getMaxActivePower();
         if (!pvInverterMaxActivePowerValue.isDefined()) {
-            setRunStatus(Level.WARNING);
-            pvInverterActivePowerLimitMean.clear();
-
             logWarn(log, "Pv inverter has no max active power defined.");
             logDebug("-------------------");
 
+            getRunFailedChannel().setNextValue(true);
             return;
         }
+
         int pvInverterMaxActivePower = pvInverterMaxActivePowerValue.get();
         _setPvInverterMaxActivePower(pvInverterMaxActivePower);
         logDebug("pvInverterMaxActivePower " + pvInverterMaxActivePower);
 
         // no limit, just set hardware max on every pv inverter
         if (ProductionManagment.FULL.equals(production)) {
+            logDebug("No pv inverter prodction limit required.");
+            logDebug("-------------------");
+
             pvInverterActivePowerLimitMean.clear();
             pvInverterActivePowerLimit = Optional.empty();
             _setPvInverterActivePowerLimit(null);
-
-            logDebug("No pv inverter prodction limit required.");
-            logDebug("-------------------");
 
             return;
         }
@@ -430,7 +455,10 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
 
         if (evcsCluster == null) {
             logDebug("No evcs cluster defined.");
-            setRunStatus(Level.WARNING);
+            logDebug("-------------------");
+
+            getRunFailedChannel().setNextValue(true);
+
             return;
         }
 
@@ -451,8 +479,9 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
 
         } catch (OpenemsNamedException ex) {
             log.error("Could not set new maximum allowed power to distribute on evcs cluster.", ex);
-            setRunStatus(Level.FAULT);
+            getRunFailedChannel().setNextValue(true);
         }
+
     }
 
     private int determineGleichzeitigkeitsfaktor(int evcs) {
@@ -475,7 +504,13 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
 
         if (evcsCluster == null) {
             logDebug("No evcs cluster defined.");
-            setRunStatus(Level.WARNING);
+            logDebug("-------------------");
+
+            evcsClusterMaximumAllowedPowerToDistributeMean.clear();
+            evcsClusterMaximumAllowedPowerToDistribute = Optional.empty();
+            _setEvcsClusterMaximumAllowedPowerToDistribute(null);
+
+            getRunFailedChannel().setNextValue(true);
             return;
         }
 
@@ -484,12 +519,12 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
 
         if (ConsumptionManagment.FULL.equals(consumption)) {
             logDebug("No evcs cluster maximum allowed power to distribute required.");
-            setRunStatus(Level.WARNING);
+            logDebug("-------------------");
 
+            evcsClusterMaximumAllowedPowerToDistributeMean.clear();
             evcsClusterMaximumAllowedPowerToDistribute = Optional.empty();
             _setEvcsClusterMaximumAllowedPowerToDistribute(null);
 
-            logDebug("-------------------");
             return;
         }
 
@@ -514,7 +549,7 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
         };
         logDebug("maximumAllowedPowerToDistribute " + maximumAllowedPowerToDistribute);
 
-        maximumAllowedPowerToDistribute = (int) evcsClusterMaximumAllowedPowerToDistributeMean.nextValue(maximumAllowedPowerToDistribute);
+        maximumAllowedPowerToDistribute = (int) evcsClusterMaximumAllowedPowerToDistributeMean.nextValue(maximumAllowedPowerToDistribute, 3, 1);
         logDebug("maximumAllowedPowerToDistribute " + maximumAllowedPowerToDistribute);
 
         evcsClusterMaximumAllowedPowerToDistribute = Optional.of(maximumAllowedPowerToDistribute);

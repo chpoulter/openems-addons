@@ -23,8 +23,14 @@
 
 package de.poulter.openems.edge.controller.para14a;
 
-import io.openems.common.channel.Unit;
-import io.openems.common.types.OpenemsType;
+import static io.openems.common.channel.PersistencePriority.HIGH;
+import static io.openems.common.types.OpenemsType.INTEGER;
+import static io.openems.common.types.OpenemsType.LONG;
+import static io.openems.common.channel.Unit.NONE;
+import static io.openems.common.channel.Unit.WATT;
+import static io.openems.common.channel.Unit.CUMULATED_SECONDS;
+import static io.openems.common.channel.Level.INFO;
+
 import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.channel.IntegerReadChannel;
@@ -35,27 +41,26 @@ public interface ControllerParagraph14a extends Controller, OpenemsComponent{
 
     public enum ChannelId implements io.openems.edge.common.channel.ChannelId {
 
-        PRODUCTION_MANAGEMENT(Doc.of(ProductionManagment.values())
-            .text("Current production managment mode.")),
-        CONSUMPTION_MANAGEMENT(Doc.of(ConsumptionManagment.values())
-            .text("Current consumption managment mode.")),
+        PRODUCTION_MANAGEMENT(Doc.of(ProductionManagment.values()).persistencePriority(HIGH).text("Current production managment mode.")),
+        CONSUMPTION_MANAGEMENT(Doc.of(ConsumptionManagment.values()).persistencePriority(HIGH).text("Current consumption managment mode.")),
 
-        PVINVERTER_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER)
-            .unit(Unit.WATT)
-            .text("Active power of the pv inverter")),
-        PVINVERTER_MAX_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER)
-            .unit(Unit.WATT)
-            .text("Maximum active power of pv inverter")),
-        PVINVERTER_ACTIVE_POWER_LIMIT(Doc.of(OpenemsType.INTEGER)
-            .unit(Unit.WATT)
-            .text("Limit for active power of pv inverter")),
+        PVINVERTER_ACTIVE_POWER(Doc.of(INTEGER).unit(WATT).text("Active power of the pv inverter")),
+        PVINVERTER_MAX_ACTIVE_POWER(Doc.of(INTEGER).unit(WATT).text("Maximum active power of pv inverter")),
+        PVINVERTER_ACTIVE_POWER_LIMIT(Doc.of(INTEGER).unit(WATT).persistencePriority(HIGH).text("Limit for active power of pv inverter")),
 
-        EVCS_COUNT(Doc.of(OpenemsType.INTEGER)
-            .unit(Unit.NONE)
-            .text("Amount of managed EVCS.")),
-        EVCS_CLUSTER_MAXIMUM_ALLOWED_POWER_TO_DISTRIBUTE(Doc.of(OpenemsType.INTEGER)
-            .unit(Unit.WATT)
-            .text("Allowed power to distribute by EVCS clusters.")),
+        EVCS_COUNT(Doc.of(INTEGER).unit(NONE).persistencePriority(HIGH).text("Amount of managed EVCS.")),
+        EVCS_CLUSTER_MAXIMUM_ALLOWED_POWER_TO_DISTRIBUTE(Doc.of(INTEGER).unit(WATT).persistencePriority(HIGH).text("Allowed power to distribute by EVCS clusters.")),
+
+        INFO_PVINVERTER_60(Doc.of(INFO).text("PvInverter reduced to 60%")),
+        INFO_PVINVERTER_30(Doc.of(INFO).text("PvInverter reduced to 30%")),
+        INFO_PVINVERTER_0(Doc.of(INFO).text("PvInverter reduced to 0%")),
+
+        INFO_EVCS_OFF(Doc.of(INFO).text("EVCS is off")),
+        INFO_EVCS_REDUCED(Doc.of(INFO).text("EVCS is reduced")),
+        INFO_EVCS_UNUSED(Doc.of(INFO).text("EVCS got the unused state")),
+
+        EVCS_RESTRICTION_TIME(Doc.of(LONG).unit(CUMULATED_SECONDS).persistencePriority(HIGH)),
+        PVINVERTER_RESTRICTION_TIME(Doc.of(LONG).unit(CUMULATED_SECONDS).persistencePriority(HIGH)),
 
         ;
 
