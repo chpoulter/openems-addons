@@ -213,7 +213,7 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
 
     @Override
     public String debugLog() {
-        return "L:" + this.getActivePower().asString() + "|pc_rrcr_state: " + getPcRrcrState().asString();
+        return "Limit: " + getEpcDynamicActivePowerLimit().orElse(null) + "|Power: " + getActivePower().orElse(null) + "|Status: " + getPcRrcrState().asString();
     }
 
     @Override
