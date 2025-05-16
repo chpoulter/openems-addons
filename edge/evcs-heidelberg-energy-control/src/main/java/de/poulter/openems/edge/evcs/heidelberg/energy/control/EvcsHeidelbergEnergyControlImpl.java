@@ -66,6 +66,7 @@ import io.openems.edge.common.event.EdgeEventConstants;
 import io.openems.edge.common.taskmanager.Priority;
 import io.openems.edge.evcs.api.CalculateEnergySession;
 import io.openems.edge.evcs.api.ChargeStateHandler;
+import io.openems.edge.evcs.api.ChargingType;
 import io.openems.edge.evcs.api.Evcs;
 import io.openems.edge.evcs.api.EvcsPower;
 import io.openems.edge.evcs.api.EvcsUtils;
@@ -147,6 +148,7 @@ public class EvcsHeidelbergEnergyControlImpl extends AbstractOpenemsModbusCompon
 
         _setMinimumPower(EvcsUtils.milliampereToWatt(config.minCurrent(), Phases.THREE_PHASE.getValue()));
         _setMaximumPower(EvcsUtils.milliampereToWatt(config.maxCurrent(), Phases.THREE_PHASE.getValue()));
+        _setChargingType(ChargingType.AC);
 
         super.activate(
             context,
@@ -278,6 +280,13 @@ public class EvcsHeidelbergEnergyControlImpl extends AbstractOpenemsModbusCompon
                 m(EvcsHeidelbergEnergyControl.ChannelId.MAX_CURRENT, new UnsignedWordElement(261), SCALE_FACTOR_2)
             ),
 
+            new FC3ReadRegistersTask(257, Priority.LOW,
+                m(EvcsHeidelbergEnergyControl.ChannelId.WATCHDOG_TIMEOUT, new UnsignedWordElement(257)),
+                m(EvcsHeidelbergEnergyControl.ChannelId.STANDBY,          new UnsignedWordElement(258)),
+                new DummyRegisterElement(259, 261),
+                m(EvcsHeidelbergEnergyControl.ChannelId.FAILSAFE_CURRENT, new UnsignedWordElement(262))
+            ),
+
             new FC6WriteRegisterTask(257, m(EvcsHeidelbergEnergyControl.ChannelId.WATCHDOG_TIMEOUT, new UnsignedWordElement(257))),
             new FC6WriteRegisterTask(258, m(EvcsHeidelbergEnergyControl.ChannelId.STANDBY,          new UnsignedWordElement(258))),
             new FC6WriteRegisterTask(261, m(EvcsHeidelbergEnergyControl.ChannelId.MAX_CURRENT,      new UnsignedWordElement(261), SCALE_FACTOR_2)),
@@ -342,7 +351,7 @@ public class EvcsHeidelbergEnergyControlImpl extends AbstractOpenemsModbusCompon
 
     @Override
     public String debugLog() {
-        return "Limit:" + getSetChargePowerLimit().orElse(null) + "|" + getStatus().getName();
+        return "Limit: " + getSetChargePowerLimit().orElse(null) + "|Power: " + getActivePower().orElse(null) + "|Status: " + getStatus().getName();
     }
 
 }
