@@ -61,6 +61,8 @@ import io.openems.edge.bridge.modbus.api.element.SignedDoublewordElement;
 import io.openems.edge.bridge.modbus.api.element.UnsignedDoublewordElement;
 import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;
 import io.openems.edge.bridge.modbus.api.element.WordOrder;
+import io.openems.edge.bridge.modbus.api.task.FC16WriteRegistersTask;
+import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.bridge.modbus.sunspec.DefaultSunSpecModel;
 import io.openems.edge.bridge.modbus.sunspec.SunSpecModel;
 import io.openems.edge.bridge.modbus.sunspec.SunSpecPoint;
@@ -221,24 +223,24 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
         logInfo(log, "Initializing SE9K specific registers...");
 
         getModbusProtocol().addTasks(
-            TaskBuilder.buildFC3ReadRegistersTask(
+            new FC3ReadRegistersTask(0xF000, Priority.LOW,
                 m(SolarEdgeSe9kPvInverter.ChannelId.PC_RRCR_STATE,              new UnsignedWordElement(0xF000)),
                 m(SolarEdgeSe9kPvInverter.ChannelId.PC_ACTIVE_POWER_LIMIT,      new UnsignedWordElement(0xF001)),
                 m(SolarEdgeSe9kPvInverter.ChannelId.PC_COS_PHI,                 new FloatDoublewordElement(0xF002).wordOrder(WordOrder.LSWMSW))
             ),
 
-            TaskBuilder.buildFC3ReadRegistersTask(
+            new FC3ReadRegistersTask(0xF102, Priority.LOW,
                 m(SolarEdgeSe9kPvInverter.ChannelId.PC_PWR_FRQ_DERATING_CONFIG, new SignedDoublewordElement(0xF102).wordOrder(WordOrder.LSWMSW)),
                 m(SolarEdgeSe9kPvInverter.ChannelId.PC_REACTIVE_PWR_CONFIG,     new SignedDoublewordElement(0xF104).wordOrder(WordOrder.LSWMSW)),
                 m(SolarEdgeSe9kPvInverter.ChannelId.PC_REACT_PW_ITER_TIME,      new UnsignedDoublewordElement(0xF106).wordOrder(WordOrder.LSWMSW))
             ),
 
-            TaskBuilder.buildFC3ReadRegistersTask(
+            new FC3ReadRegistersTask(0xF142, Priority.LOW,
                 m(SolarEdgeSe9kPvInverter.ChannelId.PC_ADVANCED_PWR_CONTROL_EN, new SignedDoublewordElement(0xF142).wordOrder(WordOrder.LSWMSW)),
                 m(SolarEdgeSe9kPvInverter.ChannelId.PC_FRT_EN,                  new SignedDoublewordElement(0xF144).wordOrder(WordOrder.LSWMSW))
             ),
 
-            TaskBuilder.buildFC3ReadRegistersTask(
+            new FC3ReadRegistersTask(0xF300, Priority.LOW,
                 m(SolarEdgeSe9kPvInverter.ChannelId.EPC_ENABLE_DPC,             new UnsignedWordElement(0xF300)),
                 new DummyRegisterElement(0xF301, 0xF303),
                 m(SolarEdgeSe9kPvInverter.ChannelId.EPC_MAX_ACTIVE_POWER,       new FloatDoublewordElement(0xF304).wordOrder(WordOrder.LSWMSW)),
@@ -249,11 +251,15 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
                 m(SolarEdgeSe9kPvInverter.ChannelId.EPC_ACTIVE_POWER_LIMIT,     new FloatDoublewordElement(0xF30C).wordOrder(WordOrder.LSWMSW)),
                 m(SolarEdgeSe9kPvInverter.ChannelId.EPC_REACTIVE_POWER_LIMIT,   new FloatDoublewordElement(0xF30E).wordOrder(WordOrder.LSWMSW)),
                 m(SolarEdgeSe9kPvInverter.ChannelId.EPC_COMMAND_TIMEOUT,        new UnsignedDoublewordElement(0xF310).wordOrder(WordOrder.LSWMSW))
-            )
-        );
+            ),
 
-        getModbusProtocol().addTasks(
-            TaskBuilder.buildFC3ReadRegistersTaskFC16WriteRegistersTask(
+            new FC3ReadRegistersTask(0xF322, Priority.HIGH,
+                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_DYNAMIC_ACTIVE_POWER_LIMIT, new FloatDoublewordElement(0xF322).wordOrder(WordOrder.LSWMSW)),
+                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_DYNAMIC_REACTIVE_POWER_REF, new FloatDoublewordElement(0xF324).wordOrder(WordOrder.LSWMSW)),
+                m(SolarEdgeSe9kPvInverter.ChannelId.EPC_DYNAMIC_COSPHI_REF,         new FloatDoublewordElement(0xF326).wordOrder(WordOrder.LSWMSW))
+            ),
+
+            new FC16WriteRegistersTask(0xF322,
                 m(SolarEdgeSe9kPvInverter.ChannelId.EPC_DYNAMIC_ACTIVE_POWER_LIMIT, new FloatDoublewordElement(0xF322).wordOrder(WordOrder.LSWMSW)),
                 m(SolarEdgeSe9kPvInverter.ChannelId.EPC_DYNAMIC_REACTIVE_POWER_REF, new FloatDoublewordElement(0xF324).wordOrder(WordOrder.LSWMSW)),
                 m(SolarEdgeSe9kPvInverter.ChannelId.EPC_DYNAMIC_COSPHI_REF,         new FloatDoublewordElement(0xF326).wordOrder(WordOrder.LSWMSW))
