@@ -23,10 +23,12 @@
 
 package de.poulter.openems.backend.metadata.ldap;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.naming.NamingEnumeration;
@@ -109,6 +111,7 @@ public class LdapEdgeReader {
 
                 // edge groups
                 List<String> edgeGroups = LdapUtils.extractValuesFromAttributes(resultAttributes, "owner", distinguishedName);
+                Set<String> edgeGroupsAsSet = Objects.isNull(edgeGroups) ? Collections.emptySet() : new HashSet<>(edgeGroups); 
 
                 LdapEdge edge = edgesByCn.get(cn);
 
@@ -132,7 +135,7 @@ public class LdapEdgeReader {
                     edgesByCn.remove(cn);
                 }
 
-                result.put(edge, new HashSet<>(edgeGroups));
+                result.put(edge, edgeGroupsAsSet);
             }
 
         } catch (Exception ex) {
