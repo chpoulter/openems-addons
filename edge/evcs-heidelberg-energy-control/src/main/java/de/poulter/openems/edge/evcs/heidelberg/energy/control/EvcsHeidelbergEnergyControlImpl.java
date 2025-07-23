@@ -177,7 +177,11 @@ public class EvcsHeidelbergEnergyControlImpl extends AbstractOpenemsModbusCompon
 
     @Override
     public MeterType getMeterType() {
-        return MeterType.MANAGED_CONSUMPTION_METERED;
+        if (config.readOnly()) {
+            return MeterType.CONSUMPTION_METERED;
+        } else {
+            return MeterType.MANAGED_CONSUMPTION_METERED;
+        }
     }
 
     @Override
@@ -231,6 +235,8 @@ public class EvcsHeidelbergEnergyControlImpl extends AbstractOpenemsModbusCompon
     }
 
     private void handleTopicCycleExecuteWrite() {
+        if (config.readOnly()) return;
+
         writeHandler.run();
     }
 
@@ -317,6 +323,8 @@ public class EvcsHeidelbergEnergyControlImpl extends AbstractOpenemsModbusCompon
 
     @Override
     public boolean applyChargePowerLimit(int power) throws Exception {
+        if (config.readOnly()) return false;
+
         int current = EvcsUtils.wattToMilliampere(power, getPhasesAsInt());
 
         setMaxCurrent(current);

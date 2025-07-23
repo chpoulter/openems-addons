@@ -46,6 +46,9 @@ import io.openems.edge.evcs.api.PhaseRotation;
     @AttributeDefinition(name = "Debug Mode", description = "Activates the debug mode")
     boolean debugMode() default false;
 
+    @AttributeDefinition(name = "Read only", description = "Defines that this evcs is read only.", required = true)
+    boolean readOnly() default true;
+
     @AttributeDefinition(name = "Modbus-ID", description = "Id of modbus bridge.")
     String modbus_id() default "modbus0";
 
