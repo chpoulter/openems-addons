@@ -59,7 +59,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <openems.version>2025.3.0</openems.version>
+    <openems.version>2025.7.0</openems.version>
   </properties>
 
   <issueManagement>

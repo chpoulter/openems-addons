@@ -73,10 +73,6 @@
       <groupId>io.openems</groupId>
       <artifactId>edge.bridge.modbus</artifactId>
     </dependency>
-    <dependency>
-      <groupId>io.openems</groupId>
-      <artifactId>edge.pvinverter.sunspec</artifactId>
-    </dependency>
   </dependencies>
 
 </project>

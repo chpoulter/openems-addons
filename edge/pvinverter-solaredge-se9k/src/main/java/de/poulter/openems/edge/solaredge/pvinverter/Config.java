@@ -26,7 +26,7 @@ package de.poulter.openems.edge.solaredge.pvinverter;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 
-import io.openems.edge.pvinverter.sunspec.Phase;
+import io.openems.edge.common.type.Phase.SingleOrAllPhase;
 
 @ObjectClassDefinition(
     name = "PvInverter SolarEdge Se9k",
@@ -56,7 +56,7 @@ import io.openems.edge.pvinverter.sunspec.Phase;
     int modbusUnitId() default 1;
 
     @AttributeDefinition(name = "Phase", description = "On which phase is the inverter connected?")
-    Phase phase() default Phase.ALL;
+    SingleOrAllPhase phase() default SingleOrAllPhase.ALL;
 
     @AttributeDefinition(name = "Dynamic reactive power reference", description = "Sets the dynamic reactive power reference.")
     float reactivePowerRef() default 100.0f;

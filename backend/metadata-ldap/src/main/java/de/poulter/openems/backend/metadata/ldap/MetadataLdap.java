@@ -472,4 +472,18 @@ public class MetadataLdap extends AbstractMetadata implements Metadata, EventHan
 
         throw new UnsupportedOperationException("getEmsTypeForEdge() is not implemented");
     }
+
+    @Override
+    public SetupProtocolCoreInfo getLatestSetupProtocolCoreInfo(String edgeId) throws OpenemsNamedException {
+        log.info("MetadataLdap.getLatestSetupProtocolCoreInfo()");
+
+        throw new UnsupportedOperationException("getLatestSetupProtocolCoreInfo() is not implemented");
+    }
+
+    @Override
+    public List<SetupProtocolCoreInfo> getProtocolsCoreInfo(String edgeId) throws OpenemsNamedException {
+        log.info("MetadataLdap.getProtocolsCoreInfo()");
+
+        throw new UnsupportedOperationException("getProtocolsCoreInfo() is not implemented");
+    }
 }

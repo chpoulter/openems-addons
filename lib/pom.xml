@@ -45,7 +45,7 @@
     -->
     <repository>
       <id>openems-maven-repo</id>
-      <url>file:${project.basedir}/../../maven-repo/repo</url>
+      <url>file:${project.basedir}/../maven-repo/repo</url>
     </repository>
 
   </repositories>

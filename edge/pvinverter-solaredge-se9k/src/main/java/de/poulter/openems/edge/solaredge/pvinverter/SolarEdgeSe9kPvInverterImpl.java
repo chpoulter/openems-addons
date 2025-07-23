@@ -66,6 +66,8 @@ import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.bridge.modbus.sunspec.DefaultSunSpecModel;
 import io.openems.edge.bridge.modbus.sunspec.SunSpecModel;
 import io.openems.edge.bridge.modbus.sunspec.SunSpecPoint;
+import io.openems.edge.bridge.modbus.sunspec.pvinverter.AbstractSunSpecPvInverter;
+import io.openems.edge.bridge.modbus.sunspec.pvinverter.SunSpecPvInverter;
 import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.OpenemsComponent;
@@ -77,8 +79,6 @@ import io.openems.edge.common.taskmanager.Priority;
 import io.openems.edge.common.type.TypeUtils;
 import io.openems.edge.meter.api.ElectricityMeter;
 import io.openems.edge.pvinverter.api.ManagedSymmetricPvInverter;
-import io.openems.edge.pvinverter.sunspec.AbstractSunSpecPvInverter;
-import io.openems.edge.pvinverter.sunspec.SunSpecPvInverter;
 
 @Designate(ocd = Config.class, factory = true)
 @Component(
