@@ -29,8 +29,8 @@ import io.openems.edge.common.test.AbstractDummyOpenemsComponent;
 import io.openems.edge.evcs.api.Evcs;
 import io.openems.edge.evcs.api.ManagedEvcsCluster;
 import io.openems.edge.evcs.api.MetaEvcs;
-import io.openems.edge.evcs.api.PhaseRotation;
 import io.openems.edge.meter.api.ElectricityMeter;
+import io.openems.edge.meter.api.PhaseRotation;
 
 public class DummyEvcsClusterPeakShaving extends AbstractDummyOpenemsComponent<DummyEvcsClusterPeakShaving>
     implements MetaEvcs, OpenemsComponent, Evcs, ElectricityMeter, ManagedEvcsCluster

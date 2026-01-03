@@ -39,6 +39,3 @@ docker rm -v $id
 
 echo Result:
 find repo -type f -name *jar
-
-
-

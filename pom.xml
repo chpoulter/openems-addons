@@ -59,7 +59,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <openems.version>2025.7.0</openems.version>
+    <openems.version>2025.11.0</openems.version>
   </properties>
 
   <issueManagement>
@@ -87,7 +87,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.12.0</version>
+        <version>3.16.0</version>
         <scope>provided</scope>
       </dependency>
       <dependency>

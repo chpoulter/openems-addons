@@ -27,10 +27,10 @@ import io.openems.edge.common.test.AbstractComponentTest.TestCase;
 
 import org.junit.jupiter.api.Test;
 
+import io.openems.common.test.DummyConfigurationAdmin;
 import io.openems.common.types.MeterType;
 import io.openems.edge.bridge.modbus.test.DummyModbusBridge;
 import io.openems.edge.common.test.ComponentTest;
-import io.openems.edge.common.test.DummyConfigurationAdmin;
 
 public class MeterBgeTechDS100Test {
 

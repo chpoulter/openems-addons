@@ -25,9 +25,9 @@ package de.poulter.openems.edge.controller.para14a;
 
 import org.junit.jupiter.api.Test;
 
+import io.openems.common.test.DummyConfigurationAdmin;
 import io.openems.edge.common.test.AbstractComponentTest.TestCase;
 import io.openems.edge.common.test.DummyComponentManager;
-import io.openems.edge.common.test.DummyConfigurationAdmin;
 import io.openems.edge.controller.test.ControllerTest;
 import io.openems.edge.io.test.DummyInputOutput;
 import io.openems.edge.meter.api.ElectricityMeter;

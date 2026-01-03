@@ -20,15 +20,17 @@
 #    SPDX-License-Identifier: AGPL-3.0-or-later
 #
 
-ARG TAG=2025.7.0
+#ARG TAG=main
+ARG TAG=2025.11.0
+#ARG TAG=develop
 
 ### git
 FROM alpine/git AS git
+ARG TAG
 
 RUN git clone https://github.com/OpenEMS/openems.git /openems
 WORKDIR /openems
-#RUN git checkout 2025.4.0
-#RUN git checkout develop
+RUN echo "Checking out OpenEMS $TAG ..."
 RUN git checkout $TAG
 
 ### gradle: build

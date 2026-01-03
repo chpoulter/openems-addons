@@ -59,6 +59,7 @@ import io.openems.backend.common.metadata.Metadata;
 import io.openems.backend.common.metadata.SimpleEdgeHandler;
 import io.openems.backend.common.metadata.User;
 import io.openems.common.channel.Level;
+import io.openems.common.event.EventBuilder;
 import io.openems.common.event.EventReader;
 import io.openems.common.exceptions.OpenemsError;
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
@@ -339,7 +340,13 @@ public class MetadataLdap extends AbstractMetadata implements Metadata, EventHan
 
         switch (event.getTopic()) {
         case Edge.Events.ON_SET_CONFIG:
-            this.edgeHandler.setEdgeConfigFromEvent(reader);
+            this.edgeHandler.setEdgeConfigFromEvent(reader, (edge, oldConfig, newConfig) -> {
+                EventBuilder.from(this.eventAdmin, Edge.Events.ON_UPDATE_CONFIG)
+                    .addArg(Edge.Events.OnUpdateConfig.EDGE_ID, edge.getId())
+                    .addArg(Edge.Events.OnUpdateConfig.OLD_CONFIG, oldConfig)
+                    .addArg(Edge.Events.OnUpdateConfig.NEW_CONFIG, newConfig)
+                    .send();
+            });
             break;
 
         case Edge.Events.ON_SET_SUM_STATE: {
@@ -485,5 +492,12 @@ public class MetadataLdap extends AbstractMetadata implements Metadata, EventHan
         log.info("MetadataLdap.getProtocolsCoreInfo()");
 
         throw new UnsupportedOperationException("getProtocolsCoreInfo() is not implemented");
+    }
+
+    @Override
+    public void createSerialNumberExtensionProtocol(String edgeId, Map<String, Map<String, String>> serialNumbers, List<SetupProtocolItem> items) {
+        log.info("MetadataLdap.createSerialNumberExtensionProtocol()");
+
+        throw new UnsupportedOperationException("createSerialNumberExtensionProtocol() is not implemented");
     }
 }

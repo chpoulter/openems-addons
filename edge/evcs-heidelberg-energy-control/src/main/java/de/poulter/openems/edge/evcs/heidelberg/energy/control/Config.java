@@ -26,7 +26,7 @@ package de.poulter.openems.edge.evcs.heidelberg.energy.control;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 
-import io.openems.edge.evcs.api.PhaseRotation;
+import io.openems.edge.meter.api.PhaseRotation;
 
 @ObjectClassDefinition(
     name = "EVCS Heidelberg Energy Control (Managed)",
