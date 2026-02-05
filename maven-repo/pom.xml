@@ -46,7 +46,7 @@
         <executions>
           <execution>
             <id>docker-build</id>
-            <phase>install</phase>
+            <phase>package</phase>
             <goals>
               <goal>exec</goal>
             </goals>

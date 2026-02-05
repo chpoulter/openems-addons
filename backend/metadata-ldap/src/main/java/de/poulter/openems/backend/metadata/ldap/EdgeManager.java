@@ -212,7 +212,8 @@ public class EdgeManager {
             edge.isOnline(),
             edge.getLastmessage(),
             null,
-            edge.getSumState()
+            edge.getSumState(),
+            null
         );
     }
 

@@ -298,7 +298,8 @@ public class MetadataLdap extends AbstractMetadata implements Metadata, EventHan
                 edge.isOnline(),
                 edge.getLastmessage(),
                 null,
-                Level.OK
+                Level.OK,
+                null
             )
         ).toList();
     }

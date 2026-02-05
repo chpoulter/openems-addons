@@ -21,7 +21,7 @@
 #
 
 #ARG TAG=main
-ARG TAG=2025.11.0
+ARG TAG=2026.1.0
 #ARG TAG=develop
 
 ### git

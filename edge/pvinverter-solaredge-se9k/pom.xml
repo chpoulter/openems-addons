@@ -50,7 +50,7 @@
 
     <!-- modbus -->
     <dependency>
-      <groupId>com.ghgande</groupId>
+      <groupId>io.openems</groupId>
       <artifactId>j2mod</artifactId>
     </dependency>
 
