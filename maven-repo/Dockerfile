@@ -21,7 +21,7 @@
 #
 
 #ARG TAG=main
-ARG TAG=2026.1.0
+#ARG TAG=2026.1.0
 #ARG TAG=develop
 
 ### git
@@ -60,6 +60,7 @@ RUN echo "#!/bin/bash" > /mvndeploy.sh
 
 RUN for f in io.openems.common.jar \
              io.openems.backend.common.jar \
+             io.openems.backend.authentication.api.jar \
              io.openems.edge.bridge.modbus.jar \
              io.openems.edge.common.jar \
              io.openems.edge.controller.api.jar \

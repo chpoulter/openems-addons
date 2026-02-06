@@ -53,6 +53,9 @@
             <configuration>
               <executable>./build.sh</executable>
               <workingDirectory>${project.basedir}</workingDirectory>
+              <arguments>
+                <argument>${openems.version}</argument>
+              </arguments>
             </configuration>
           </execution>
         </executions>

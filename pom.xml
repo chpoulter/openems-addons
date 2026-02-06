@@ -59,7 +59,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <openems.version>2026.1.0</openems.version>
+    <openems.version>2026.2.0</openems.version>
   </properties>
 
   <issueManagement>
@@ -86,15 +86,15 @@
       <!-- misc -->
       <dependency>
         <groupId>org.apache.commons</groupId>
-        <artifactId>commons-lang3</artifactId>
-        <version>3.20.0</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.commons</groupId>
         <artifactId>commons-math3</artifactId>
         <version>3.6.1</version>
         <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.20.0</version>
+        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
@@ -183,6 +183,12 @@
       <dependency>
         <groupId>io.openems</groupId>
         <artifactId>backend.common</artifactId>
+        <version>${openems.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.openems</groupId>
+        <artifactId>backend.authentication.api</artifactId>
         <version>${openems.version}</version>
         <scope>provided</scope>
       </dependency>

@@ -21,9 +21,11 @@
 #    SPDX-License-Identifier: AGPL-3.0-or-later
 #
 
-echo Building image
+openems_version=${1}
+
+echo Building image ${openems_version}
 #DOCKER_BUILDKIT=1 docker build -t cpou/openems-maven-repo -f Dockerfile --progress plain --no-cache --pull .
-DOCKER_BUILDKIT=1 docker build -t cpou/openems-maven-repo -f Dockerfile --progress plain .
+DOCKER_BUILDKIT=1 docker build -t cpou/openems-maven-repo -f Dockerfile --progress plain --build-arg TAG=${openems_version} .
 
 # clear old repo
 echo Cleaning old REPO
