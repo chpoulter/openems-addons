@@ -3,6 +3,10 @@ OpenEMS Backend implementation for LDAP Metadata.
 
 Allows authentication, authorization and edge configuration through a LDAP server.
 
+Attention: with OpenEMS 2026.2.0 authentication API has changed and was not adopted here.
+Likely this will compile but not work. As I do not use the backend anymore, I stopped
+maintaining this code beyond compiling.
+
 [https://github.com/chpoulter/openems-addons](https://github.com/chpoulter/openems-addons "https://github.com/chpoulter/openems-addons")
 
 ## Build

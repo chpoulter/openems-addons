@@ -3,6 +3,8 @@ Christian's OpenEMS Addons
 
 [https://github.com/chpoulter/openems-addons](https://github.com/chpoulter/openems-addons "https://github.com/chpoulter/openems-addons")
 
+NOTICE: backend project was disabled as I do not run a backend anymore and lack time and ability to support it.
+
 ## Build
 
 Just build with maven clean package and you'll get some jar files that can be added to the felix load folder.
@@ -15,9 +17,9 @@ mvn versions:display-dependency-updates
 
 ## extra commands
 
-OWASP check: mvn -P security verify  
-License check: mvn -P license validate  
-License 3-party: mvn -P license generate-resources  
+OWASP check: mvn -P security verify
+License check: mvn -P license validate
+License 3-party: mvn -P license generate-resources
 
 ## License
 

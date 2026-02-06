@@ -93,6 +93,10 @@
       <groupId>io.openems</groupId>
       <artifactId>backend.common</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.openems</groupId>
+      <artifactId>backend.authentication.api</artifactId>
+    </dependency>
 
     <!-- Testing -->
     <dependency>

@@ -28,7 +28,6 @@ import static java.util.stream.Collectors.joining;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -49,6 +48,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 
+import io.openems.backend.authentication.api.AuthUserPasswordAuthenticationService;
+import io.openems.backend.authentication.api.model.PasswordAuthenticationResult;
 import io.openems.backend.common.alerting.OfflineEdgeAlertingSetting;
 import io.openems.backend.common.alerting.SumStateAlertingSetting;
 import io.openems.backend.common.alerting.UserAlertingSettings;
@@ -90,7 +91,7 @@ import io.openems.common.utils.StringUtils;
         Metadata.Events.AFTER_IS_INITIALIZED
     }
 )
-public class MetadataLdap extends AbstractMetadata implements Metadata, EventHandler {
+public class MetadataLdap extends AbstractMetadata implements Metadata, EventHandler, AuthUserPasswordAuthenticationService {
 
     private final Logger log = LoggerFactory.getLogger(MetadataLdap.class);
 
@@ -146,37 +147,71 @@ public class MetadataLdap extends AbstractMetadata implements Metadata, EventHan
     // -------------------------------------------
 
     @Override
-    public User authenticate(String username, String password) throws OpenemsNamedException {
-        log.info("Authenticating username " + username + ".");
+    public CompletableFuture<User> getUserByExternalId(String username) {
+        log.info("Reading user by username " + username + ".");
 
-        // authenticate user against LDAP
-        ldapReader.authenticate(username, password);
-        User user = ldapReader.readUser(username);
-        userManager.put(user);
+        try {
+            User user = ldapReader.readUser(username);
+            userManager.put(user);
 
-        log.info("Authentication for user " + user.getId() + " with token " + user.getToken() + " successfully. Global role is " + user.getGlobalRole() + ".");
-
-        return user;
+            return CompletableFuture.completedFuture(user);
+        } catch (OpenemsNamedException ex) {
+            return CompletableFuture.failedFuture(ex);
+        }
     }
 
     @Override
-    public User authenticate(String token) throws OpenemsNamedException {
+    public Role getUserRole(User user, String edgeId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    // TODO: not migrated to 2026.2.0
+    @Override
+    public CompletableFuture<PasswordAuthenticationResult> authenticateWithPassword(String username, String password) {
+        log.info("Authenticating username " + username + ".");
+
+        // authenticate user against LDAP
+        try {
+            ldapReader.authenticate(username, password);
+            User user = ldapReader.readUser(username);
+            userManager.put(user);
+
+            log.info("Authentication for user " + user.getId() + " with token " + user.getToken() + " successfully. Global role is " + user.getGlobalRole() + ".");
+
+            PasswordAuthenticationResult passwordAuthenticationResult = new PasswordAuthenticationResult(user.getId(), user.getName(), null);
+            return CompletableFuture.completedFuture(passwordAuthenticationResult);
+
+        } catch (OpenemsNamedException ex) {
+            return CompletableFuture.failedFuture(ex);
+        }
+    }
+
+    // TODO: not migrated to 2026.2.0
+    @Override
+    public CompletableFuture<PasswordAuthenticationResult> authenticateWithToken(String token) {
         log.info("Authenticating token " + token + ".");
 
         User user = userManager.getByToken(token);
         if (user == null) {
-            throw OpenemsError.COMMON_AUTHENTICATION_FAILED.exception();
+            return CompletableFuture.failedFuture(OpenemsError.COMMON_AUTHENTICATION_FAILED.exception());
         }
 
-        return user;
+        PasswordAuthenticationResult passwordAuthenticationResult = new PasswordAuthenticationResult(user.getId(), user.getName(), token);
+        return CompletableFuture.completedFuture(passwordAuthenticationResult);
     }
 
+    // TODO: not migrated to 2026.2.0
     @Override
-    public void logout(User user) {
-        log.info("Logging out user " + user.getId() + ".");
+    public CompletableFuture<Void> logout(String token) {
+        log.info("Logging out user by token " + token + ".");
 
+        User user = userManager.getByToken(token);
         userManager.remove(user);
+
+        return CompletableFuture.completedFuture(null);
     }
+
 
     @Override
     public Optional<User> getUser(String userId) {
@@ -249,15 +284,15 @@ public class MetadataLdap extends AbstractMetadata implements Metadata, EventHan
     }
 
     @Override
-    public List<EdgeMetadata> getPageDevice(User user, PaginationOptions paginationOptions) throws OpenemsNamedException {
+    public CompletableFuture<List<EdgeMetadata>> getPageDevice(User user, PaginationOptions paginationOptions) {
         log.info("Getting page device for user " + user.getId() + ".");
 
-        NavigableMap<String, Role> userRoles = user.getEdgeRoles();
+        //NavigableMap<String, Role> userRoles = user.getEdgeRoles();
         Stream<LdapEdge> pagesStream = edgeManager.getEdges().stream();
 
-        if (user.getGlobalRole().isLessThan(Role.ADMIN)) {
-            pagesStream = pagesStream.filter(edge -> userRoles.containsKey(edge.getId()));
-        }
+//        if (user.getGlobalRole().isLessThan(Role.ADMIN)) {
+//            pagesStream = pagesStream.filter(edge -> userRoles.containsKey(edge.getId()));
+//        }
 
         String query = paginationOptions.getQuery();
         if (query != null) {
@@ -285,7 +320,7 @@ public class MetadataLdap extends AbstractMetadata implements Metadata, EventHan
             }
         }
 
-        return pagesStream
+        return CompletableFuture.completedFuture(pagesStream
             .sorted((s1, s2) -> s1.getId().compareTo(s2.getId()))
             .skip(paginationOptions.getPage() * paginationOptions.getLimit())
             .limit(paginationOptions.getLimit())
@@ -294,19 +329,27 @@ public class MetadataLdap extends AbstractMetadata implements Metadata, EventHan
                 edge.getComment(),
                 edge.getProducttype(),
                 edge.getVersion(),
-                userRoles.get(edge.getId()),
+                Role.ADMIN,
+ // TODO: not migrated to 2026.2.0
+//                userRoles.get(edge.getId()),
                 edge.isOnline(),
                 edge.getLastmessage(),
                 null,
                 Level.OK,
                 null
             )
-        ).toList();
+        ).toList());
     }
 
     @Override
-    public EdgeMetadata getEdgeMetadataForUser(User user, String edgeId) throws OpenemsNamedException {
-        return edgeManager.getEdgeMetadataForUser(user, edgeId);
+    public CompletableFuture<EdgeMetadata> getEdgeMetadataForUser(User user, String edgeId) {
+        EdgeMetadata edgeMetaData = edgeManager.getEdgeMetadataForUser(user, edgeId);
+
+        if (edgeMetaData == null) {
+            return CompletableFuture.failedFuture(new OpenemsException("Unable to find edge with id [" + edgeId + "]"));
+        }
+
+        return CompletableFuture.completedFuture(edgeMetaData);
     }
 
     // -------------------------------------------
@@ -501,4 +544,5 @@ public class MetadataLdap extends AbstractMetadata implements Metadata, EventHan
 
         throw new UnsupportedOperationException("createSerialNumberExtensionProtocol() is not implemented");
     }
+
 }

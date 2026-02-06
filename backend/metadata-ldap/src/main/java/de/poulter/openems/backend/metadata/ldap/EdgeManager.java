@@ -184,7 +184,7 @@ public class EdgeManager {
         return roles;
     }
 
-    public EdgeMetadata getEdgeMetadataForUser(User user, String edgeId) throws OpenemsNamedException {
+    public EdgeMetadata getEdgeMetadataForUser(User user, String edgeId) {
         if (user == null) {
             return null;
         }
@@ -196,12 +196,14 @@ public class EdgeManager {
             return null;
         }
 
-        NavigableMap<String, Role> userRoles = user.getEdgeRoles();
-        Role userRoleForEdge = userRoles.get(edge.getId());
-
-        if (userRoleForEdge == null) {
-            return null;
-        }
+// TODO: not migrated to 2026.2.0
+        Role userRoleForEdge = Role.ADMIN;
+//        NavigableMap<String, Role> userRoles = user.getEdgeRoles();
+//        Role userRoleForEdge = userRoles.get(edge.getId());
+//
+//        if (userRoleForEdge == null) {
+//            return null;
+//        }
 
         return new EdgeMetadata(
             edge.getId(),

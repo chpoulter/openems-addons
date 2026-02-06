@@ -249,7 +249,7 @@ public class LdapUserReader {
                 settings.addProperty("phone", phone);
             }
 
-            User user = new User(id, name, token, language, globalRole, roles, hasMultipleEdges, settings);
+            User user = new User(id, name, token, language, globalRole, hasMultipleEdges, settings);
 
             return user;
 
