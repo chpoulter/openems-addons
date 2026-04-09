@@ -46,13 +46,13 @@ import de.poulter.openems.lib.mean.WeightedMean;
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.types.ChannelAddress;
 import io.openems.edge.common.channel.BooleanReadChannel;
+import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.AbstractOpenemsComponent;
 import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
-import io.openems.edge.common.type.TypeUtils;
 import io.openems.edge.controller.api.Controller;
 import io.openems.edge.evcs.api.ManagedEvcsCluster;
 import io.openems.edge.meter.api.ElectricityMeter;
@@ -61,6 +61,8 @@ import io.openems.edge.timedata.api.Timedata;
 import io.openems.edge.timedata.api.TimedataProvider;
 import io.openems.edge.timedata.api.utils.CalculateActiveTime;
 
+import io.openems.common.utils.IntUtils;
+
 @Designate(ocd = Config.class, factory = true)
 @Component(
     name = "Controller.Paragraph14aEnWG",
@@ -68,8 +70,7 @@ import io.openems.edge.timedata.api.utils.CalculateActiveTime;
     configurationPolicy = ConfigurationPolicy.REQUIRE
 )
 @EventTopics({
-    EdgeEventConstants.TOPIC_CYCLE_BEFORE_CONTROLLERS,
-    EdgeEventConstants.TOPIC_CYCLE_AFTER_CONTROLLERS
+    EdgeEventConstants.TOPIC_CYCLE_BEFORE_CONTROLLERS
 })
 public class ControllerParagraph14aImpl extends AbstractOpenemsComponent 
     implements ControllerParagraph14a, Controller, OpenemsComponent, TimedataProvider, EventHandler
@@ -188,11 +189,8 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
 
         switch (event.getTopic()) {
             case EdgeEventConstants.TOPIC_CYCLE_BEFORE_CONTROLLERS:
+                clearEvcsMaximumAllowedPowerToDistribute();
                 mapRelaisInputsToManagementModes();
-                break;
-
-            case EdgeEventConstants.TOPIC_CYCLE_AFTER_CONTROLLERS:
-                checkEvcsMaximumAllowedPowerToDistribute();
                 break;
         }
     }
@@ -211,6 +209,8 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
 
         pvInverterRestrictionTime.update(!ProductionManagment.FULL.equals(production));
         evcsRestrictionTime.update(!ConsumptionManagment.FULL.equals(consumption));
+
+        checkEvcsMaximumAllowedPowerToDistribute();
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -432,7 +432,7 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
         activePowerLimit += gridActivePower + pvInverterActivePower;
         logDebug("activePowerLimit " + activePowerLimit);
 
-        activePowerLimit = TypeUtils.fitWithin(0, pvInverterMaxActivePower, activePowerLimit);
+        activePowerLimit = IntUtils.fitWithin(0, pvInverterMaxActivePower, activePowerLimit);
         logDebug("activePowerLimit " + activePowerLimit);
 
         activePowerLimit = (int) pvInverterActivePowerLimitMean.nextValue(activePowerLimit);
@@ -451,36 +451,52 @@ public class ControllerParagraph14aImpl extends AbstractOpenemsComponent
     //
     ////////////////////////////////////////////////////////////////////
 
-    private void checkEvcsMaximumAllowedPowerToDistribute() {
+    private void clearEvcsMaximumAllowedPowerToDistribute() {
 
         if (evcsCluster == null) {
             logDebug("No evcs cluster defined.");
-            logDebug("-------------------");
-
             getRunFailedChannel().setNextValue(true);
 
             return;
         }
 
-        logDebug("checkEvcsMaximumAllowedPowerToDistribute evcsClusterMaximumAllowedPowerToDistribute "+ evcsClusterMaximumAllowedPowerToDistribute);
+        IntegerReadChannel maximumAllowedPowerToDistributeChannel = evcsCluster.getMaximumAllowedPowerToDistributeChannel();
+        maximumAllowedPowerToDistributeChannel.setNextValue(null);
+    }
 
-        IntegerWriteChannel maximumAllowedPowerToDistributeChannel = evcsCluster.getMaximumAllowedPowerToDistributeChannel();
+    private void checkEvcsMaximumAllowedPowerToDistribute() {
 
-        int maximumAllowedPowerToDistribute = maximumAllowedPowerToDistributeChannel
-            .getNextWriteValue()
-            .map( value -> value < 0 ? null : value )
-            .map( value -> TypeUtils.fitWithin(0, evcsClusterMaximumAllowedPowerToDistribute.orElse(Integer.MAX_VALUE), value) )
-            .orElse(evcsClusterMaximumAllowedPowerToDistribute.orElse(-1));
-
-        logDebug("checkEvcsMaximumAllowedPowerToDistribute maximumAllowedPowerToDistribute "+ maximumAllowedPowerToDistribute);
-
-        try {
-            maximumAllowedPowerToDistributeChannel.setNextWriteValue(maximumAllowedPowerToDistribute);
-
-        } catch (OpenemsNamedException ex) {
-            log.error("Could not set new maximum allowed power to distribute on evcs cluster.", ex);
+        if (evcsCluster == null) {
+            logDebug("No evcs cluster defined.");
             getRunFailedChannel().setNextValue(true);
+
+            return;
         }
+
+        logDebug("checkEvcsMaximumAllowedPowerToDistribute evcsClusterMaximumAllowedPowerToDistribute " + evcsClusterMaximumAllowedPowerToDistribute);
+
+        IntegerReadChannel maximumAllowedPowerToDistributeChannel = evcsCluster.getMaximumAllowedPowerToDistributeChannel();
+        Value<Integer> nextMaximumAllowedPowerToDistribute = maximumAllowedPowerToDistributeChannel.getNextValue();
+        logDebug("checkEvcsMaximumAllowedPowerToDistribute nextMaximumAllowedPowerToDistribute " + nextMaximumAllowedPowerToDistribute);
+
+        Integer maximumAllowedPowerToDistribute = null;
+
+        if (evcsClusterMaximumAllowedPowerToDistribute.isPresent()) {
+            maximumAllowedPowerToDistribute = evcsClusterMaximumAllowedPowerToDistribute.get();
+
+            if (nextMaximumAllowedPowerToDistribute.isDefined()) {
+                maximumAllowedPowerToDistribute = Math.min(
+                    maximumAllowedPowerToDistribute,
+                    nextMaximumAllowedPowerToDistribute.get()
+                );
+            }
+
+        } else if (nextMaximumAllowedPowerToDistribute.isDefined()) {
+            maximumAllowedPowerToDistribute = nextMaximumAllowedPowerToDistribute.get();
+        }
+
+        logDebug("checkEvcsMaximumAllowedPowerToDistribute set maximumAllowedPowerToDistribute " + maximumAllowedPowerToDistribute);
+        maximumAllowedPowerToDistributeChannel.setNextValue(maximumAllowedPowerToDistribute);
 
     }
 
