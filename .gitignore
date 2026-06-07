@@ -32,3 +32,5 @@ replay_pid*
 maven-repo/repo
 maven-repo/alljarslist.txt
 maven-repo/patches
+
+**/.flattened-pom.xml

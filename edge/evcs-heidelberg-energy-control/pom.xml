@@ -28,7 +28,7 @@
   <parent>
     <groupId>de.poulter.openems</groupId>
     <artifactId>edge</artifactId>
-    <version>1.0.0</version>
+    <version>${revision}</version>
   </parent>
 
   <artifactId>edge-evcs-heidelberg-energy-control</artifactId>

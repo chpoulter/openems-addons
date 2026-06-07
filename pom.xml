@@ -21,14 +21,14 @@
  *
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>de.poulter.openems</groupId>
   <artifactId>addons</artifactId>
-  <version>1.0.0</version>
+  <version>${revision}</version>
   <packaging>pom</packaging>
 
   <name>Christian's OpenEMS addons</name>
@@ -59,7 +59,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <openems.version>2026.4.0</openems.version>
+    <openems.version>2026.6.0</openems.version>
+    <revision>1.26.6.0-SNAPSHOT</revision>
   </properties>
 
   <issueManagement>
@@ -80,7 +81,7 @@
       <dependency>
         <groupId>de.poulter.openems</groupId>
         <artifactId>lib</artifactId>
-        <version>1.0.0</version>
+        <version>${revision}</version>
       </dependency>
 
       <!-- misc -->
@@ -328,6 +329,30 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <version>1.6.0</version> <configuration>
+          <updatePomFile>true</updatePomFile>
+          <flattenMode>bom</flattenMode>
+        </configuration>
+        <executions>
+          <execution>
+            <id>flatten</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>flatten.clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
 
     <!-- include these files to jar bundle -->
@@ -408,20 +433,20 @@
               </execution>
             </executions>
             <configuration>
-              <enabled>true</enabled> 
-              <printViolations>true</printViolations> 
-              <printCompliant>true</printCompliant> 
-              <failBuildOnViolation>true</failBuildOnViolation> 
-              <checkCodeDependencies>true</checkCodeDependencies> 
-              <checkPluginDependencies>true</checkPluginDependencies> 
-              <includeCompileDependencies>true</includeCompileDependencies> 
-              <includeRuntimeDependencies>true</includeRuntimeDependencies> 
-              <includeProvidedDependencies>false</includeProvidedDependencies> 
-              <includeTestDependencies>true</includeTestDependencies> 
-              <strategy>passOnMatch</strategy> 
+              <enabled>true</enabled>
+              <printViolations>true</printViolations>
+              <printCompliant>true</printCompliant>
+              <failBuildOnViolation>true</failBuildOnViolation>
+              <checkCodeDependencies>true</checkCodeDependencies>
+              <checkPluginDependencies>true</checkPluginDependencies>
+              <includeCompileDependencies>true</includeCompileDependencies>
+              <includeRuntimeDependencies>true</includeRuntimeDependencies>
+              <includeProvidedDependencies>false</includeProvidedDependencies>
+              <includeTestDependencies>true</includeTestDependencies>
+              <strategy>passOnMatch</strategy>
               <rules>
                 <rule>url:regex:(http|https)://www.gnu.org/licenses/lgpl-3.0.txt</rule>
-                <rule>url:regex:(http|https)://www.apache.org/licenses/LICENSE-2.0.txt</rule>            
+                <rule>url:regex:(http|https)://www.apache.org/licenses/LICENSE-2.0.txt</rule>
                 <rule>url:regex:(http|https)://(www.)?opensource.org/licenses/(MIT|mit-license.php)</rule>
                 <rule>name:equal:The MIT License</rule>
                 <rule>name:equal:Eclipse Public License v2.0</rule>
