@@ -233,7 +233,7 @@ public class UserServiceImpl implements UserService {
                 return Optional.empty();
             }
 
-            LdapUser user = new LdapUser(id, name, language, globalRole);
+            User user = new User(id, name, language, globalRole);
 
             log.info("User " + username + " read from LDAP: " + user);
 
