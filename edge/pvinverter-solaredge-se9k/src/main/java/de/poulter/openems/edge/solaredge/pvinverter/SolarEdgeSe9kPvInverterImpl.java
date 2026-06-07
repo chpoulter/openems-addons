@@ -142,12 +142,20 @@ public class SolarEdgeSe9kPvInverterImpl extends AbstractSunSpecPvInverter imple
 
     @Activate
     private void activate(ComponentContext context, Config config) throws OpenemsException {
+//        super.activate(
+//            context,
+//            config.id(), config.alias(), config.enabled(), config.readOnly(), config.modbusUnitId(),
+//            this.cm, "Modbus", config.modbus_id(), READ_FROM_MODBUS_BLOCK, config.phase()
+//        );
+
         super.activate(
             context,
             config.id(), config.alias(), config.enabled(), config.readOnly(), config.modbusUnitId(),
-            this.cm, "Modbus", config.modbus_id(), READ_FROM_MODBUS_BLOCK, config.phase()
+            //this.cm,
+            //"Modbus",
+            //config.modbus_id(),
+            READ_FROM_MODBUS_BLOCK, config.phase()
         );
-
         this.readOnly = config.readOnly();
         this.debugMode = config.debugMode();
         this.reactivePowerRef = config.reactivePowerRef();
