@@ -59,8 +59,11 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
     <openems.version>2026.6.0-263</openems.version>
-    <revision>1.26.6.0-SNAPSHOT</revision>
+
+    <version>1.26.6</version>
+    <revision>${version}-SNAPSHOT</revision>
   </properties>
 
   <issueManagement>
@@ -332,9 +335,13 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>flatten-maven-plugin</artifactId>
-        <version>1.6.0</version> <configuration>
+        <version>1.6.0</version>
+        <configuration>
           <updatePomFile>true</updatePomFile>
-          <flattenMode>bom</flattenMode>
+          <flattenMode>resolveCiFriendliesOnly</flattenMode>
+          <pomElements>
+            <properties>interpolate</properties> 
+          </pomElements>
         </configuration>
         <executions>
           <execution>
@@ -418,17 +425,20 @@
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
       <build>
         <plugins>
           <plugin>
             <groupId>com.github.codemonstur</groupId>
             <artifactId>maven-check-license</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.0</version>
             <executions>
               <execution>
                 <phase>validate</phase>
                 <goals>
-                  <goal>check-licenses</goal>
+                  <goal>check</goal>
                 </goals>
               </execution>
             </executions>
@@ -452,13 +462,16 @@
                 <rule>name:equal:Eclipse Public License v2.0</rule>
                 <rule>name:regex:(The )?Apache(\s|-)(Software )?(License |License, )?(Version |version )?2\.0</rule>
               </rules>
+              <exclusions>
+                <exclude>de.poulter.openems:lib:${revision}</exclude> 
+              </exclusions>
             </configuration>
           </plugin>
 
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>license-maven-plugin</artifactId>
-            <version>2.5.0</version>
+            <version>2.7.1</version>
             <executions>
               <execution>
                 <goals>
@@ -480,6 +493,17 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+        <id>use-env-build-number</id>
+        <activation>
+            <property>
+                <name>env.BUILD_NUMBER</name>
+            </property>
+        </activation>
+        <properties>
+            <revision>${version}.${env.BUILD_NUMBER}</revision>
+        </properties>
+    </profile>
   </profiles>
 
   <modules>
@@ -487,5 +511,16 @@
     <!--<module>backend</module>-->
     <module>edge</module>
   </modules>
+
+  <distributionManagement>
+    <repository>
+      <id>repository-release</id>
+      <url>${env.MAVEN_REPOSITORY}</url>
+    </repository>
+    <snapshotRepository>
+      <id>repository-snapshots</id>
+      <url>${env.MAVEN_REPOSITORY}</url>
+    </snapshotRepository>
+  </distributionManagement>
 
 </project>
