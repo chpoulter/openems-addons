@@ -59,7 +59,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <openems.version>2026.6.0</openems.version>
+    <openems.version>2026.6.0-263</openems.version>
     <revision>1.26.6.0-SNAPSHOT</revision>
   </properties>
 
@@ -483,7 +483,6 @@
   </profiles>
 
   <modules>
-    <module>maven-repo</module>
     <module>lib</module>
     <!--<module>backend</module>-->
     <module>edge</module>
