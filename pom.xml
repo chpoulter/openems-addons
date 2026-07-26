@@ -60,9 +60,9 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-    <openems.version>2026.6.0-263</openems.version>
+    <openems.version>2026.6.0-268</openems.version>
 
-    <version>1.26.6</version>
+    <version>1.28.6</version>
     <revision>${version}-SNAPSHOT</revision>
   </properties>
 
