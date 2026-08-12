@@ -190,7 +190,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    public Optional<User> readUser(String username) {
+    private Optional<User> readUser(String username) {
         try {
             DirContext context = ldapContextManager.getContext();
 
@@ -247,7 +247,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void registerAdminUser(String setupKey, String username, String password) throws OpenemsNamedException {
-        throw new OpenemsNamedException(OpenemsError.GENERIC, "Please manage users using your favorite LDAP administration tool.");
+    public Optional<User> getUserById(String userId) {
+        return readUser(userId);
     }
+
+    @Override
+    public void registerAdminUser(String setupKey, String username, String password, Language language) throws OpenemsNamedException {
+        throw new UnsupportedOperationException("Please manage users using your favorite LDAP administration tool.");
+    }
+
+    @Override
+    public void updateLanguage(Language language) {
+        throw new UnsupportedOperationException("Please manage users using your favorite LDAP administration tool.");
+    }
+
 }
