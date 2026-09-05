@@ -38,6 +38,7 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchResult;
 
+import org.osgi.framework.Constants;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -46,7 +47,6 @@ import org.osgi.service.metatype.annotations.Designate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.openems.common.exceptions.OpenemsError;
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.session.Language;
 import io.openems.common.session.Role;
@@ -58,6 +58,8 @@ import io.openems.edge.common.user.UserService;
     factory = false
 )
 @Component(
+    service = UserService.class,
+    property = { Constants.SERVICE_RANKING + ":Integer=100" },
     name = "Core.User.LDAP",
     immediate = true,
     configurationPolicy = ConfigurationPolicy.REQUIRE		
