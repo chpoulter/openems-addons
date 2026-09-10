@@ -60,7 +60,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-    <openems.version>2026.9.0-339</openems.version>
+    <openems.version>2026.9.0-341</openems.version>
 
     <version>1.28.6</version>
     <revision>${version}-SNAPSHOT</revision>
@@ -199,6 +199,12 @@
       <dependency>
         <groupId>io.openems</groupId>
         <artifactId>edge.common</artifactId>
+        <version>${openems.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.openems</groupId>
+        <artifactId>edge.controller.api.mqtt</artifactId>
         <version>${openems.version}</version>
         <scope>provided</scope>
       </dependency>

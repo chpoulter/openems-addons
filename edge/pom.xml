@@ -111,6 +111,7 @@
     <module>io-bestep</module>
     <module>metadata-ldap</module>
     <module>meter-bgetech-ds100</module>
+    <module>mqtt</module>
     <module>pvinverter-solaredge-se9k</module>
   </modules>
 
