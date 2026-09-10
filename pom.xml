@@ -204,6 +204,12 @@
       </dependency>
       <dependency>
         <groupId>io.openems</groupId>
+        <artifactId>edge.controller.api.mqtt</artifactId>
+        <version>${openems.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.openems</groupId>
         <artifactId>edge.controller.api</artifactId>
         <version>${openems.version}</version>
         <scope>provided</scope>
@@ -303,7 +309,6 @@
             <Bundle-ContactAddress>devel(at)poulter.de</Bundle-ContactAddress>
             <Bundle-Copyright>${project.name} (C) 2025 Christian Poulter</Bundle-Copyright>
             <Bundle-License>https://www.gnu.org/licenses/agpl-3.0.txt</Bundle-License>
-
           </instructions>
         </configuration>
       </plugin>
