@@ -31,7 +31,7 @@
     <version>${revision}</version>
   </parent>
 
-  <artifactId>mqtt</artifactId>
+  <artifactId>edge-mqtt</artifactId>
   <packaging>bundle</packaging>
 
   <name>OpenEMS mqtt bundle</name>
