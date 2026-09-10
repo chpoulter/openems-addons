@@ -38,7 +38,7 @@
   <description>Adds a read write interface to mqtt</description>
 
   <properties>
-    <bundleSymbolicName>${project.groupId}.edge.mqtt</bundleSymbolicName>
+    <bundleSymbolicName>${project.groupId}.edge.controller.mqtt</bundleSymbolicName>
   </properties>
 
   <dependencies>
