@@ -37,19 +37,6 @@
   <name>OpenEMS Edge Addons</name>
   <description>Addons for OpenEMS edge</description>
 
-  <repositories>
-
-    <!-- 
-      unfortuatly OpenEMS does not provide jars in a central repo
-      see openems-maven-repo how to generate this local repository
-    -->
-    <repository>
-      <id>openems-maven-repo</id>
-      <url>file:${project.basedir}/../../maven-repo/repo</url>
-    </repository>
-
-  </repositories>
-
   <dependencies>
 
     <!-- misc -->
