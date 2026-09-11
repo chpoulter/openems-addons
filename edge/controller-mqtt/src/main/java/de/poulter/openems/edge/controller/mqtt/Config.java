@@ -19,8 +19,11 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
     @AttributeDefinition(name = "Is enabled?", description = "Is this component enabled?")
     boolean enabled() default true;
 
-    @AttributeDefinition(name = "Edge-ID", description = "Client-ID for authentication at MQTT broker")
-    String clientId() default "edge0";
+    @AttributeDefinition(name = "Client-ID", description = "Client-ID for authentication at MQTT broker")
+    String clientId() default "edge0writer";
+
+    @AttributeDefinition(name = "Edge-ID", description = "Edge-ID for subscriptions")
+    String edgeId() default "edge0";
 
     @AttributeDefinition(name = "Topic prefix", description = "Optional topic prefix (<topic_prefix>/edge/<edge_id>/...)")
     String topicPrefix() default "";

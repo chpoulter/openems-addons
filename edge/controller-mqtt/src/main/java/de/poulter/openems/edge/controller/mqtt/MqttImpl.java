@@ -78,11 +78,10 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
 //                    && trustStorePem != null && !trustStorePem.isBlank()) {
 //                options.setSocketFactory(createSslSocketFactory(certPem, privateKeyPem, trustStorePem));
 //            }
-            
-            
+
             try {
-                mqttLifecycleManager = new MqttLifecycleManager(config.uri(), config.clientId() + "w", options, (IMqttClient mqttClient) -> {
-                    String topicName = config.topicPrefix() + "/" + "edge/" + config.clientId() + "/channel/+/+";
+                mqttLifecycleManager = new MqttLifecycleManager(config.uri(), config.clientId(), options, (IMqttClient mqttClient) -> {
+                    String topicName = config.topicPrefix() + "/" + "edge/" + config.edgeId() + "/channel/+/+";
                     log.info("Subscribing to " + topicName);
 
                     try {
@@ -141,30 +140,13 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
 //        }
     }
 
-
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
     @Override
     public void run() throws OpenemsNamedException {
-        // TODO Auto-generated method stub
-        
     }
-    
-    
-    
-    
-    
+
+
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    
+
     public static String toJson(MqttMessage message) {
         Map<String, Object> jsonMap = new HashMap<>();
         jsonMap.put("payload", new String(message.getPayload(), StandardCharsets.UTF_8));
