@@ -1,4 +1,4 @@
-package de.poulter.openems.edge.mqtt;
+package de.poulter.openems.edge.controller.mqtt;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;

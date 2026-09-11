@@ -1,4 +1,4 @@
-package de.poulter.openems.edge.mqtt;
+package de.poulter.openems.edge.controller.mqtt;
 
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.AttributeType;

@@ -1,4 +1,4 @@
-package de.poulter.openems.edge.mqtt;
+package de.poulter.openems.edge.controller.mqtt;
 
 import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.component.OpenemsComponent;
