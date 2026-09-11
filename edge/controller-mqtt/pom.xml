@@ -72,10 +72,6 @@
       <groupId>io.openems</groupId>  
       <artifactId>edge.controller.api</artifactId>
     </dependency>
-    <dependency>
-      <groupId>io.openems</groupId>  
-      <artifactId>edge.controller.api.mqtt</artifactId>
-    </dependency>
 
   </dependencies>
 

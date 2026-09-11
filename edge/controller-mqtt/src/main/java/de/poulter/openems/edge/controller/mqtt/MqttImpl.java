@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.paho.mqttv5.client.IMqttClient;
+import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
 import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -38,7 +39,7 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
 
     private static final Logger log = LoggerFactory.getLogger(MqttImpl.class);
 
-    private MyMqttConnector mqttConnector;
+    private MqttLifecycleManager mqttLifecycleManager;
     
     @Reference
     private ConfigurationAdmin cm;
@@ -61,7 +62,22 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
         super.activate(context, config.id(), config.alias(), config.enabled());
 
         if (this.isEnabled()) {
-            mqttConnector = new MyMqttConnector(config, (IMqttClient mqttClient) -> {
+            MqttConnectionOptions options = new MqttConnectionOptions();
+            options.setUserName(config.username());
+            if (config.password() != null && !config.password().isBlank()) {
+                options.setPassword(config.password().getBytes(StandardCharsets.UTF_8));
+            }
+            options.setAutomaticReconnect(true);
+            options.setCleanStart(true);
+            options.setConnectionTimeout(10);
+
+//            if (certPem != null && !certPem.isBlank() //
+//                    && privateKeyPem != null && !privateKeyPem.isBlank() //
+//                    && trustStorePem != null && !trustStorePem.isBlank()) {
+//                options.setSocketFactory(createSslSocketFactory(certPem, privateKeyPem, trustStorePem));
+//            }
+            
+            mqttLifecycleManager = new MqttLifecycleManager(config.uri(), config.clientId(), options, (IMqttClient mqttClient) -> {
                 String topicName = config.topicPrefix() + "/" + "edge/" + config.clientId() + "/channel/+/+";
                 log.info("Subscribing to " + topicName);
 
@@ -71,7 +87,8 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
                     log.error("Could not subscribe to mqtt channels", ex);
                 }
             });
-            mqttConnector.scheduleReconnect();
+            mqttLifecycleManager.start();
+
         }
     }
 
@@ -83,9 +100,9 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
 
         super.deactivate();
 
-        if (mqttConnector != null) {
-            mqttConnector.shutdown();
-            mqttConnector = null;
+        if (mqttLifecycleManager != null) {
+            mqttLifecycleManager.shutdown();
+            mqttLifecycleManager = null;
         }
 
 
