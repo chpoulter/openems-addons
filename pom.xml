@@ -310,6 +310,10 @@
             <Bundle-Copyright>${project.name} (C) 2025 Christian Poulter</Bundle-Copyright>
             <Bundle-License>https://www.gnu.org/licenses/agpl-3.0.txt</Bundle-License>
 
+            <Embed-Dependency>jackson-core,jackson-databind,jackson-annotations</Embed-Dependency>
+            <Embed-Transitive>true</Embed-Transitive>
+            <_exportcontents>com.fasterxml.jackson.core.*,com.fasterxml.jackson.databind.*</_exportcontents>
+            <Import-Package>!com.fasterxml.jackson.*,*</Import-Package>
           </instructions>
         </configuration>
       </plugin>

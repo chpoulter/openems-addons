@@ -19,6 +19,7 @@ import org.osgi.service.metatype.annotations.Designate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
@@ -162,9 +163,30 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
     
     
     
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    
+    public static String toJson(MqttMessage message) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        jsonMap.put("payload", new String(message.getPayload(), StandardCharsets.UTF_8));
+        jsonMap.put("qos", message.getQos());
+        jsonMap.put("retained", message.isRetained());
+        jsonMap.put("duplicate", message.isDuplicate());
+
+        if (message.getProperties() != null) {
+            jsonMap.put("properties", message.getProperties());
+        }
+
+        try {
+            return OBJECT_MAPPER.writeValueAsString(jsonMap);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            throw new RuntimeException("Failed to convert MqttMessage to JSON", e);
+        }
+    }
+
+    
     private static final Gson GSON = new com.google.gson.Gson();
 
-    public static String toJson(MqttMessage message) {
+    public static String toJson2(MqttMessage message) {
 
         Map<String, Object> jsonMap = new HashMap<>();
         jsonMap.put("payload", new String(message.getPayload(), StandardCharsets.UTF_8));
