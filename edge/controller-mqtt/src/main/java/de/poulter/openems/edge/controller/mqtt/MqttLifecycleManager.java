@@ -19,30 +19,26 @@ import java.util.logging.Logger;
 
 public class MqttLifecycleManager {
 
-    private static final Logger LOGGER = Logger.getLogger(MqttLifecycleManager.class.getName());
+    private static final Logger log = Logger.getLogger(MqttLifecycleManager.class.getName());
 
-    private final IMqttClient client;
-    private final MqttConnectionOptions connectionOptions;
     private final AtomicBoolean isShuttingDown = new AtomicBoolean(false);
 
-    private Consumer<IMqttClient> onConnected;
+    private final MqttConnectionOptions connectionOptions;
+    private final Consumer<IMqttClient> onConnected;
+
+    private final IMqttClient client;
 
     public MqttLifecycleManager(
         String serverURI,
         String clientId,
         MqttConnectionOptions connectionOptions,
         Consumer<IMqttClient> onConnected
-    ) {
+    ) throws MqttException {
         this.onConnected = onConnected;
-        
-        try {
-            this.client = new MqttClient(serverURI, clientId);
-            this.client.setCallback(new XXX());
-
-        } catch (MqttException e) {
-            throw new RuntimeException("Failed to initialize MQTT client", e);
-        }
         this.connectionOptions = connectionOptions;
+
+        this.client = new MqttClient(serverURI, clientId);
+        this.client.setCallback(new MqttLifecycleManagerCallback());
     }
 
     public void start() {
@@ -55,16 +51,16 @@ public class MqttLifecycleManager {
             return;
         }
 
-        LOGGER.info("Attempting to connect to MQTT broker...");
+        log.info("Attempting to connect to MQTT broker...");
         CompletableFuture.runAsync(() -> {
             try {
                 client.connect(connectionOptions);
-                LOGGER.info("Successfully connected to the MQTT broker.");
+                log.info("Successfully connected to the MQTT broker.");
                 if (onConnected != null) {
                     onConnected.accept(client);
                 }
             } catch (MqttException e) {
-                LOGGER.log(Level.WARNING, "Connection attempt failed. Retrying in 5 seconds...", e);
+                log.log(Level.WARNING, "Connection attempt failed. Retrying in 5 seconds...", e);
                 if (!isShuttingDown.get()) {
                     CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS).execute(() -> attemptConnection());
                 }
@@ -80,9 +76,9 @@ public class MqttLifecycleManager {
                 client.disconnect();
             }
             client.close();
-            LOGGER.info("MQTT client successfully shut down.");
+            log.info("MQTT client successfully shut down.");
         } catch (MqttException e) {
-            LOGGER.log(Level.SEVERE, "Error occurred while shutting down MQTT client", e);
+            log.log(Level.SEVERE, "Error occurred while shutting down MQTT client", e);
         }
     }
     
@@ -92,16 +88,17 @@ public class MqttLifecycleManager {
     
     
     
-    private class XXX implements MqttCallback {
+    private class MqttLifecycleManagerCallback implements MqttCallback {
+
         @Override
         public void disconnected(MqttDisconnectResponse disconnectResponse) {
             if (isShuttingDown.get()) {
                 return;
             }
-            
+
             String reason = disconnectResponse != null ? disconnectResponse.getReasonString() : "Unknown";
-            LOGGER.warning("Disconnected from MQTT broker: " + reason);
-            
+            log.warning("Disconnected from MQTT broker: " + reason);
+
             if (!connectionOptions.isAutomaticReconnect() && !client.isConnected()) {
                 start();
             }
@@ -113,7 +110,7 @@ public class MqttLifecycleManager {
                 return;
             }
             
-            LOGGER.log(Level.SEVERE, "An MQTT error occurred: " + exception.getMessage(), exception);
+            log.log(Level.SEVERE, "An MQTT error occurred: " + exception.getMessage(), exception);
             
             if (!client.isConnected()) {
                 triggerSafeReconnect();
@@ -123,7 +120,7 @@ public class MqttLifecycleManager {
         private void triggerSafeReconnect() {
             CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS).execute(() -> {
                 if (!client.isConnected() && !isShuttingDown.get()) {
-                    LOGGER.info("Triggering recovery reconnect attempt due to error...");
+                    log.info("Triggering recovery reconnect attempt due to error...");
                     start();
                 }
             });
@@ -131,22 +128,22 @@ public class MqttLifecycleManager {
     
         @Override
         public void connectComplete(boolean reconnect, String serverURI) {
-            LOGGER.info("Connect complete. Reconnect: " + reconnect + ", Server URI: " + serverURI);
+            log.info("Connect complete. Reconnect: " + reconnect + ", Server URI: " + serverURI);
         }
     
         @Override
         public void authPacketArrived(int reasonCode, MqttProperties properties) {
-            LOGGER.info("Auth packet arrived with reason code: " + reasonCode);
+            log.info("Auth packet arrived with reason code: " + reasonCode);
         }
     
         @Override
         public void deliveryComplete(IMqttToken token) {
-            LOGGER.info("Delivery complete, token: " + token);
+            log.info("Delivery complete, token: " + token);
         }
     
         @Override
         public void messageArrived(String topic, MqttMessage message) {
-            LOGGER.info("Message arrived on topic " + topic + ".");
+            log.info("Message arrived on topic " + topic + ".");
         }
 
     }

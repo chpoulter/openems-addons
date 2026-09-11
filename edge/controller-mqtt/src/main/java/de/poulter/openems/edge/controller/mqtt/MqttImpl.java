@@ -19,7 +19,7 @@ import org.osgi.service.metatype.annotations.Designate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.exceptions.OpenemsException;
@@ -78,18 +78,25 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
 //                options.setSocketFactory(createSslSocketFactory(certPem, privateKeyPem, trustStorePem));
 //            }
             
-            mqttLifecycleManager = new MqttLifecycleManager(config.uri(), config.clientId(), options, (IMqttClient mqttClient) -> {
-                String topicName = config.topicPrefix() + "/" + "edge/" + config.clientId() + "/channel/+/+";
-                log.info("Subscribing to " + topicName);
+            
+            try {
+                mqttLifecycleManager = new MqttLifecycleManager(config.uri(), config.clientId(), options, (IMqttClient mqttClient) -> {
+                    String topicName = config.topicPrefix() + "/" + "edge/" + config.clientId() + "/channel/+/+";
+                    log.info("Subscribing to " + topicName);
 
-                try {
-                    mqttClient.subscribe(topicName, 1, (topic, msg) -> this.handleIncomingMessage(topic, msg));
-                } catch (MqttException ex) {
-                    log.error("Could not subscribe to mqtt channels", ex);
-                }
-            });
-            mqttLifecycleManager.start();
+                    try {
+                        mqttClient.subscribe(topicName, 1, (topic, msg) -> this.handleIncomingMessage(topic, msg));
+                    } catch (MqttException ex) {
+                        log.error("Could not subscribe to mqtt channels", ex);
+                    }
+                });
+                mqttLifecycleManager.start();
 
+            } catch (MqttException ex) {
+                log.error("Could not initialize mqtt client", ex);
+
+                throw new OpenemsException("Could not initialize mqtt client.", ex);
+            }
         }
     }
 
@@ -155,9 +162,10 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
     
     
     
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    
+    private static final Gson GSON = new com.google.gson.Gson();
+
     public static String toJson(MqttMessage message) {
+
         Map<String, Object> jsonMap = new HashMap<>();
         jsonMap.put("payload", new String(message.getPayload(), StandardCharsets.UTF_8));
         jsonMap.put("qos", message.getQos());
@@ -168,10 +176,6 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
             jsonMap.put("properties", message.getProperties());
         }
 
-        try {
-            return OBJECT_MAPPER.writeValueAsString(jsonMap);
-        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            throw new RuntimeException("Failed to convert MqttMessage to JSON", e);
-        }
+        return GSON.toJson(jsonMap);
     }
 }
