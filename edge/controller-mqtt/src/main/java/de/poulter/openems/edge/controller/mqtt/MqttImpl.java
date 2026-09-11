@@ -19,13 +19,14 @@ import org.osgi.service.metatype.annotations.Designate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.exceptions.OpenemsException;
 import io.openems.edge.common.component.AbstractOpenemsComponent;
 import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.controller.api.Controller;
-import tools.jackson.databind.ObjectMapper;
 
 // /daten/Projekte/openems/openems/io.openems.edge.controller.api.mqtt/src/io/openems/edge/controller/api/mqtt/
 
@@ -154,10 +155,9 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
     
     
     
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     
     public static String toJson(MqttMessage message) {
-        ObjectMapper objectMapper = new ObjectMapper();
-
         Map<String, Object> jsonMap = new HashMap<>();
         jsonMap.put("payload", new String(message.getPayload(), StandardCharsets.UTF_8));
         jsonMap.put("qos", message.getQos());
@@ -168,6 +168,10 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
             jsonMap.put("properties", message.getProperties());
         }
 
-        return objectMapper.writeValueAsString(jsonMap);
+        try {
+            return OBJECT_MAPPER.writeValueAsString(jsonMap);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            throw new RuntimeException("Failed to convert MqttMessage to JSON", e);
+        }
     }
 }
