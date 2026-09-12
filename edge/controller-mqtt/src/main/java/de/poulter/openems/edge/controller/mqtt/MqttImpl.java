@@ -145,8 +145,11 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
 
         try {
             log.info("Connected " + mqttClient.isConnected());
-            IMqttToken result = mqttClient.subscribe(topicName, 0);
-            log.info("Result: " + toJsonString(result));
+            IMqttToken token = mqttClient.subscribe(topicName, 0);
+
+            token.waitForCompletion(15000);
+            int[] grantedQos = token.getGrantedQos();
+            log.info("Result: " + grantedQos);
 
         } catch (Exception ex) {
             log.error("Could not subscribe to mqtt channels", ex);
