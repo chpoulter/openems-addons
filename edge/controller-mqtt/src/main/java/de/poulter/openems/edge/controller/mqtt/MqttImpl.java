@@ -178,7 +178,7 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
             
             log.info("Setting " + payloadValue + " on component " + componentId + " channel " + channelId + ".");
 
-            if (componentId.startsWith("_Property")) {
+            if (channelId.startsWith("_Property")) {
                 String key = channelId.substring(9);
                 log.info("Updating property " + key + " with " + payloadValue);
                 
