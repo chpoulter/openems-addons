@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.paho.mqttv5.client.IMqttClient;
+import org.eclipse.paho.mqttv5.client.IMqttToken;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
 import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
@@ -19,6 +20,7 @@ import org.osgi.service.metatype.annotations.Designate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 
@@ -83,11 +85,12 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
                 mqttLifecycleManager = new MqttLifecycleManager(config.uri(), config.clientId(), options, (IMqttClient mqttClient) -> {
                     String topicName = config.topicPrefix() + "/edge/" + config.edgeId() + "/#";
                     topicName = "openems/#";
+                    topicName = "openems/edge/edge0/channel/pvInverter3/ActivePowerLimitQoS";
                     log.info("Subscribing to " + topicName);
 
                     try {
                         log.info("Connected " + mqttClient.isConnected());
-                        mqttClient.subscribe(topicName, 0, (topic, msg) -> {
+                        IMqttToken result = mqttClient.subscribe(topicName, 0, (topic, msg) -> {
                             try {
                                 log.info("Received message on topic: " + topic);
                                 this.handleIncomingMessage(topic, msg);
@@ -95,6 +98,9 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
                                 log.error("Could not handle message", ex);
                             }
                         });
+
+                        log.info("Result: " + toJsonString(result));
+
                     } catch (MqttException ex) {
                         log.error("Could not subscribe to mqtt channels", ex);
                     }
@@ -109,7 +115,6 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
         }
     }
 
-    
     @Override
     @Deactivate
     protected void deactivate() {
@@ -127,7 +132,7 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
 
     private void handleIncomingMessage(String topic, MqttMessage message) {
         log.info("Message on " + topic);
-        log.info(toJson(message));
+        log.info(toJsonString(message));
 
 //        try {
 //            String[] parts = topic.split("/");
@@ -174,6 +179,18 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
         }
     }
 
+    public static <T> String toJsonString(T object) {
+        if (object == null) {
+            return null;
+        }
+
+        try {
+            return OBJECT_MAPPER.writeValueAsString(object);
+        } catch (JsonProcessingException ex) {
+            log.error("Could not convert to string.", ex);
+            return null;
+        }
+    }
     
     private static final Gson GSON = new com.google.gson.Gson();
 
