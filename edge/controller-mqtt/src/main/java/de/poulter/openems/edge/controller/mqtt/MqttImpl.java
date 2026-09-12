@@ -172,9 +172,15 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
             String componentId = parts[4];
             String channelId = parts[5];
             String payloadValue = new String(message.getPayload());
+            
+            log.info("Setting " + payloadValue + " on component " + componentId + " channel " + channelId + ".");
 
             WriteChannel<?> channel = (WriteChannel<?>) this.componentManager.getComponent(componentId).channel(channelId);
-            channel.setNextWriteValueFromObject(payloadValue);
+            
+            log.info("Channel: " + channel.address().toString());
+            
+            //channel.setNextWriteValueFromObject(payloadValue);
+            channel.setNextValue(payloadValue);
 
         } catch (Exception ex) {
             log.error("Error", ex);
