@@ -139,8 +139,6 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
     
     private void onConnect(IMqttClient mqttClient) {
         String topicName = config.topicPrefix() + "/edge/" + config.edgeId() + "/#";
-        topicName = "openems/#";
-        topicName = "openems/edge/edge0/channel/pvInverter3/ActivePowerLimitQoS";
         log.info("Subscribing to " + topicName);
 
         try {
@@ -148,8 +146,16 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
             IMqttToken token = mqttClient.subscribe(topicName, 0);
 
             token.waitForCompletion(15000);
-            int[] grantedQos = token.getGrantedQos();
-            log.info("Result: " + grantedQos);
+
+            for (int qos : token.getGrantedQos()) {
+                log.info("Result: " + qos);
+            }
+
+            log.info("Completion: " + token.isComplete());
+
+            for (String topic: token.getTopics()) {
+                log.info("Topics: " + topic);
+            }
 
         } catch (Exception ex) {
             log.error("Could not subscribe to mqtt channels", ex);

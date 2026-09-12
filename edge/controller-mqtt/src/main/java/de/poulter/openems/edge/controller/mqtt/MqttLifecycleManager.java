@@ -42,8 +42,8 @@ public class MqttLifecycleManager {
         this.onMessage = onMessage;
         this.connectionOptions = connectionOptions;
 
-        this.client = new MqttClient(serverURI, clientId);
-        this.client.setCallback(new MqttLifecycleManagerCallback());
+        client = new MqttClient(serverURI, clientId);
+        client.setCallback(new MqttLifecycleManagerCallback());
     }
 
     public void start() {
