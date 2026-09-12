@@ -1,7 +1,9 @@
 package de.poulter.openems.edge.controller.mqtt;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
 
 import org.eclipse.paho.mqttv5.client.IMqttClient;
@@ -9,6 +11,7 @@ import org.eclipse.paho.mqttv5.client.IMqttToken;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
 import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
+import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -175,12 +178,27 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
             
             log.info("Setting " + payloadValue + " on component " + componentId + " channel " + channelId + ".");
 
-            WriteChannel<?> channel = (WriteChannel<?>) this.componentManager.getComponent(componentId).channel(channelId);
+            if (componentId.startsWith("_Property")) {
+                String key = channelId.substring(9);
+                log.info("Updating property " + key + " with " + payloadValue);
+                
+                Configuration config = this.cm.getConfiguration(componentId, "?");
+                
+                Dictionary<String, Object> properties = config.getProperties();
+                if (properties == null) {
+                    properties = new Hashtable<>();
+                }
+                
+                properties.put(key, payloadValue);
+                config.update(properties);
+                
+            } else {
+                WriteChannel<?> channel = (WriteChannel<?>) this.componentManager.getComponent(componentId).channel(channelId);
             
-            log.info("Channel: " + channel.address().toString());
+                log.info("Channel: " + channel.address().toString());
             
-            //channel.setNextWriteValueFromObject(payloadValue);
-            channel.setNextValue(payloadValue);
+                channel.setNextWriteValueFromObject(payloadValue);
+            }
 
         } catch (Exception ex) {
             log.error("Error", ex);
