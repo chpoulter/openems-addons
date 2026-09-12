@@ -4,8 +4,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.IMqttClient;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
+import org.eclipse.paho.mqttv5.client.MqttActionListener;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
 import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
@@ -51,6 +53,8 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
     @Reference
     private ComponentManager componentManager;
 
+    private Config config;
+
     public MqttImpl() {
         super(
             OpenemsComponent.ChannelId.values(),
@@ -62,6 +66,8 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
     @Activate
     private void activate(ComponentContext context, Config config) throws OpenemsException {
         log.info("Mqtt.activate");
+        
+        this.config = config;
 
         super.activate(context, config.id(), config.alias(), config.enabled());
 
@@ -75,38 +81,53 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
             options.setCleanStart(true);
             options.setConnectionTimeout(10);
 
+            
+            
+            
 //            if (certPem != null && !certPem.isBlank() //
 //                    && privateKeyPem != null && !privateKeyPem.isBlank() //
 //                    && trustStorePem != null && !trustStorePem.isBlank()) {
 //                options.setSocketFactory(createSslSocketFactory(certPem, privateKeyPem, trustStorePem));
 //            }
-
+            
             try {
-                mqttLifecycleManager = new MqttLifecycleManager(config.uri(), config.clientId(), options, (IMqttClient mqttClient) -> {
-                    String topicName = config.topicPrefix() + "/edge/" + config.edgeId() + "/#";
-                    topicName = "openems/#";
-                    topicName = "openems/edge/edge0/channel/pvInverter3/ActivePowerLimitQoS";
-                    log.info("Subscribing to " + topicName);
+                mqttLifecycleManager = new MqttLifecycleManager(
+                    config.uri(),
+                    config.clientId(),
+                    options,
+                    (IMqttClient mqttClient) -> onConnect(mqttClient),
+                    (IMqttClient mqttClient, String topic, MqttMessage message) -> onMessage(mqttClient, topic, message)
+                );
+            
+            
 
-                    try {
-                        log.info("Connected " + mqttClient.isConnected());
-                        IMqttToken result = mqttClient.subscribe(topicName, 0, (topic, msg) -> {
-                            try {
-                                log.info("Received message on topic: " + topic);
-                                this.handleIncomingMessage(topic, msg);
-                            } catch(Exception ex) {
-                                log.error("Could not handle message", ex);
-                            }
-                        });
-
-                        log.info("Result: " + toJsonString(result));
-
-                    } catch (Exception ex) {
-                        log.error("Could not subscribe to mqtt channels", ex);
-                    }
-                });
-                mqttLifecycleManager.start();
-
+//            try {
+//                mqttLifecycleManager = new MqttLifecycleManager(config.uri(), config.clientId(), options, (IMqttClient mqttClient) -> {
+//                    String topicName = config.topicPrefix() + "/edge/" + config.edgeId() + "/#";
+//                    topicName = "openems/#";
+//                    topicName = "openems/edge/edge0/channel/pvInverter3/ActivePowerLimitQoS";
+//                    log.info("Subscribing to " + topicName);
+//
+//                    try {
+//                        log.info("Connected " + mqttClient.isConnected());
+//                        IMqttToken result = mqttClient.subscribe(topicName, 0, (topic, msg) -> {
+//                            try {
+//                                log.info("Received message on topic: " + topic);
+//                                this.handleIncomingMessage(topic, msg);
+//                            } catch(Exception ex) {
+//                                log.error("Could not handle message", ex);
+//                            }
+//                        });
+//
+//                        log.info("Result: " + toJsonString(result));
+//
+//                    } catch (Exception ex) {
+//                        log.error("Could not subscribe to mqtt channels", ex);
+//                    }
+//                });
+//                mqttLifecycleManager.start();
+//
+                
             } catch (MqttException ex) {
                 log.error("Could not initialize mqtt client", ex);
 
@@ -114,6 +135,43 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
             }
         }
     }
+    
+    private void onConnect(IMqttClient mqttClient) {
+        String topicName = config.topicPrefix() + "/edge/" + config.edgeId() + "/#";
+        topicName = "openems/#";
+        topicName = "openems/edge/edge0/channel/pvInverter3/ActivePowerLimitQoS";
+        log.info("Subscribing to " + topicName);
+
+        try {
+            log.info("Connected " + mqttClient.isConnected());
+            IMqttToken result = mqttClient.subscribe(topicName, 0);
+            log.info("Result: " + toJsonString(result));
+
+        } catch (Exception ex) {
+            log.error("Could not subscribe to mqtt channels", ex);
+        }
+    }
+
+    private void onMessage(IMqttClient mqttClient, String topic, MqttMessage message) {
+        log.info("Received message on topic: " + topic);
+        log.info(toJsonString(message));
+    }
+
+//    private void subscribe(IMqttAsyncClient asyncClient) {
+//        String topicName = config.topicPrefix() + "/edge/" + config.edgeId() + "/#";
+//        topicName = "openems/#";
+//        topicName = "openems/edge/edge0/channel/pvInverter3/ActivePowerLimitQoS";
+//        log.info("Subscribing to " + topicName);
+//
+//        asyncClient.subscribe(topicName, 0, (topic, msg) -> {
+//            try {
+//                log.info("Received message on topic: " + topic);
+//                this.handleIncomingMessage(topic, msg);
+//            } catch (Exception ex) {
+//                log.error("Could not handle message", ex);
+//            }
+//        });
+//    }
 
     @Override
     @Deactivate

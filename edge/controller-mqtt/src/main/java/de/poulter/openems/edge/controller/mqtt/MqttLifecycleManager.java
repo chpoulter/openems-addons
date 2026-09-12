@@ -10,6 +10,8 @@ import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 
+import io.openems.common.function.TriConsumer;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -25,6 +27,7 @@ public class MqttLifecycleManager {
 
     private final MqttConnectionOptions connectionOptions;
     private final Consumer<IMqttClient> onConnected;
+    private final TriConsumer<IMqttClient, String, MqttMessage> onMessage;
 
     private final IMqttClient client;
 
@@ -32,9 +35,11 @@ public class MqttLifecycleManager {
         String serverURI,
         String clientId,
         MqttConnectionOptions connectionOptions,
-        Consumer<IMqttClient> onConnected
+        Consumer<IMqttClient> onConnected,
+        TriConsumer<IMqttClient, String, MqttMessage> onMessage
     ) throws MqttException {
         this.onConnected = onConnected;
+        this.onMessage = onMessage;
         this.connectionOptions = connectionOptions;
 
         this.client = new MqttClient(serverURI, clientId);
@@ -56,9 +61,7 @@ public class MqttLifecycleManager {
             try {
                 client.connect(connectionOptions);
                 log.info("Successfully connected to the MQTT broker.");
-                if (onConnected != null) {
-                    onConnected.accept(client);
-                }
+
             } catch (MqttException e) {
                 log.log(Level.WARNING, "Connection attempt failed. Retrying in 5 seconds...", e);
                 if (!isShuttingDown.get()) {
@@ -129,6 +132,10 @@ public class MqttLifecycleManager {
         @Override
         public void connectComplete(boolean reconnect, String serverURI) {
             log.info("Connect complete. Reconnect: " + reconnect + ", Server URI: " + serverURI);
+            
+            if (onConnected != null) {
+                onConnected.accept(client);
+            }            
         }
     
         @Override
@@ -144,6 +151,10 @@ public class MqttLifecycleManager {
         @Override
         public void messageArrived(String topic, MqttMessage message) {
             log.info("Message arrived on topic " + topic + ".");
+            
+            if (onMessage != null) {
+                onMessage.accept(client, topic, message);
+            }
         }
 
     }
