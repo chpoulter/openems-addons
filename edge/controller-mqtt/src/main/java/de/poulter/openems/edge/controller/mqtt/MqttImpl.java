@@ -87,7 +87,7 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
 
                     try {
                         log.info("Connected " + mqttClient.isConnected());
-                        mqttClient.subscribe(topicName, 1, (topic, msg) -> {
+                        mqttClient.subscribe(topicName, 0, (topic, msg) -> {
                             try {
                                 log.info("Received message on topic: " + topic);
                                 this.handleIncomingMessage(topic, msg);
