@@ -82,10 +82,19 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
             try {
                 mqttLifecycleManager = new MqttLifecycleManager(config.uri(), config.clientId(), options, (IMqttClient mqttClient) -> {
                     String topicName = config.topicPrefix() + "/edge/" + config.edgeId() + "/#";
+                    topicName = "openems/#";
                     log.info("Subscribing to " + topicName);
 
                     try {
-                        mqttClient.subscribe(topicName, 1, (topic, msg) -> this.handleIncomingMessage(topic, msg));
+                        log.info("Connected " + mqttClient.isConnected());
+                        mqttClient.subscribe(topicName, 1, (topic, msg) -> {
+                            try {
+                                log.info("Received message on topic: " + topic);
+                                this.handleIncomingMessage(topic, msg);
+                            } catch(Exception ex) {
+                                log.error("Could not handle message", ex);
+                            }
+                        });
                     } catch (MqttException ex) {
                         log.error("Could not subscribe to mqtt channels", ex);
                     }
