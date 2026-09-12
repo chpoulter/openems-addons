@@ -1,9 +1,11 @@
 package de.poulter.openems.edge.controller.mqtt;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.paho.mqttv5.client.IMqttClient;
@@ -28,11 +30,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
+import io.openems.common.jsonrpc.request.UpdateComponentConfigRequest.Property;
+import io.openems.common.jsonrpc.type.UpdateComponentConfig.Request;
 import io.openems.common.exceptions.OpenemsException;
 import io.openems.edge.common.channel.WriteChannel;
 import io.openems.edge.common.component.AbstractOpenemsComponent;
 import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
+import io.openems.edge.common.user.User;
 import io.openems.edge.controller.api.Controller;
 
 // /daten/Projekte/openems/openems/io.openems.edge.controller.api.mqtt/src/io/openems/edge/controller/api/mqtt/
@@ -182,15 +187,29 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
                 String key = channelId.substring(9);
                 log.info("Updating property " + key + " with " + payloadValue);
                 
-                Configuration config = this.cm.getConfiguration(componentId, "?");
                 
-                Dictionary<String, Object> properties = config.getProperties();
-                if (properties == null) {
-                    properties = new Hashtable<>();
-                }
+                Property property = new Property(key, payloadValue);                
+                List<Property> properties = new ArrayList<>();                
+                properties.add(property);
+                                
+                User user = null;
+                componentManager.handleUpdateComponentConfigRequest(user,
+                    new Request(componentId, properties)
+                );
                 
-                properties.put(key, payloadValue);
-                config.update(properties);
+//                
+//                
+//                Configuration config = cm.getConfiguration(componentId);
+//                
+//                Configuration config = this.cm.getConfiguration(componentId, "?");
+//                
+//                Dictionary<String, Object> properties = config.getProperties();
+//                if (properties == null) {
+//                    properties = new Hashtable<>();
+//                }
+//                
+//                properties.put(key, payloadValue);
+//                config.update(properties);
                 
             } else {
                 WriteChannel<?> channel = (WriteChannel<?>) this.componentManager.getComponent(componentId).channel(channelId);
