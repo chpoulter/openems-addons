@@ -4,10 +4,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.IMqttClient;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
-import org.eclipse.paho.mqttv5.client.MqttActionListener;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
 import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
@@ -164,24 +162,16 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
 
     private void onMessage(IMqttClient mqttClient, String topic, MqttMessage message) {
         log.info("Received message on topic: " + topic);
-        log.info(toJsonString(message));
+        
+        String clientId = message.getProperties().getAssignedClientIdentifier();
+        
+        log.info("clientId " + clientId);
+        
+        if (! "edge0".equals(clientId)) {
+            log.info(toJsonString(message));
+        }
     }
 
-//    private void subscribe(IMqttAsyncClient asyncClient) {
-//        String topicName = config.topicPrefix() + "/edge/" + config.edgeId() + "/#";
-//        topicName = "openems/#";
-//        topicName = "openems/edge/edge0/channel/pvInverter3/ActivePowerLimitQoS";
-//        log.info("Subscribing to " + topicName);
-//
-//        asyncClient.subscribe(topicName, 0, (topic, msg) -> {
-//            try {
-//                log.info("Received message on topic: " + topic);
-//                this.handleIncomingMessage(topic, msg);
-//            } catch (Exception ex) {
-//                log.error("Could not handle message", ex);
-//            }
-//        });
-//    }
 
     @Override
     @Deactivate
@@ -197,10 +187,6 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
 
 
     }
-
-    private void handleIncomingMessage(String topic, MqttMessage message) {
-        log.info("Message on " + topic);
-        log.info(toJsonString(message));
 
 //        try {
 //            String[] parts = topic.split("/");
@@ -220,7 +206,7 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
 //        } catch (Exception e) {
 //            log.error("Error", e);
 //        }
-    }
+
 
     @Override
     public void run() throws OpenemsNamedException {
