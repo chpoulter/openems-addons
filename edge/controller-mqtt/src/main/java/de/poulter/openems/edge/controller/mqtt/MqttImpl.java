@@ -98,6 +98,7 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
                     (IMqttClient mqttClient) -> onConnect(mqttClient),
                     (IMqttClient mqttClient, String topic, MqttMessage message) -> onMessage(mqttClient, topic, message)
                 );
+                mqttLifecycleManager.start();
             
             
 
