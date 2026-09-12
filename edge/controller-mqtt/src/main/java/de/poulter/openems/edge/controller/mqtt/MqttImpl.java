@@ -26,6 +26,7 @@ import com.google.gson.Gson;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.exceptions.OpenemsException;
+import io.openems.edge.common.channel.WriteChannel;
 import io.openems.edge.common.component.AbstractOpenemsComponent;
 import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
@@ -136,7 +137,7 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
     }
     
     private void onConnect(IMqttClient mqttClient) {
-        String topicName = config.topicPrefix() + "/edge/" + config.edgeId() + "/#";
+        String topicName = config.topicPrefix() + "/edge/" + config.edgeId() + "/command/#";
         log.info("Subscribing to " + topicName);
 
         try {
@@ -162,13 +163,21 @@ public class MqttImpl extends AbstractOpenemsComponent implements Mqtt, Controll
 
     private void onMessage(IMqttClient mqttClient, String topic, MqttMessage message) {
         log.info("Received message on topic: " + topic);
-        
-        String clientId = message.getProperties().getAssignedClientIdentifier();
-        
-        log.info("clientId " + clientId);
-        
-        if (! "edge0".equals(clientId)) {
-            log.info(toJsonString(message));
+        log.info(toJsonString(message));
+
+        try {
+            String[] parts = topic.split("/");
+            if (parts.length < 6) return;
+
+            String componentId = parts[4];
+            String channelId = parts[5];
+            String payloadValue = new String(message.getPayload());
+
+            WriteChannel<?> channel = (WriteChannel<?>) this.componentManager.getComponent(componentId).channel(channelId);
+            channel.setNextWriteValueFromObject(payloadValue);
+
+        } catch (Exception ex) {
+            log.error("Error", ex);
         }
     }
 
