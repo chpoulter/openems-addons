@@ -1,18 +1,16 @@
 package de.poulter.openems.lib.utils;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.json.JsonMapper;
 
 public class ObjectDumper {
 
     private static final Logger log = LoggerFactory.getLogger(ObjectDumper.class);
 
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder()
-            .enable(tools.jackson.databind.SerializationFeature.INDENT_OUTPUT)
-            .build();
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private ObjectDumper() {}
 
@@ -22,11 +20,11 @@ public class ObjectDumper {
         }
 
         try {
-            return JSON_MAPPER.writeValueAsString(object);
+            return GSON.toJson(object);
 
-        } catch (JacksonException ex) {
+        } catch (Exception ex) {
             log.error("Could not convert object to json string.", ex);
-            return null;
+            return object.toString();
         }
     }
 }

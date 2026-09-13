@@ -49,8 +49,9 @@
       <artifactId>slf4j-simple</artifactId>
     </dependency>
     <dependency>
-        <groupId>tools.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <scope>provided</scope>
     </dependency>
 
     <!-- OpenEMS -->

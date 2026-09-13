@@ -118,11 +118,6 @@
         <version>1.7.13</version>
         <scope>provided</scope>
       </dependency>
-      <dependency>
-          <groupId>tools.jackson.core</groupId>
-          <artifactId>jackson-databind</artifactId>
-          <version>3.0.0</version>
-      </dependency>
 
       <!-- modbus -->
       <dependency>
@@ -314,11 +309,6 @@
             <Bundle-ContactAddress>devel(at)poulter.de</Bundle-ContactAddress>
             <Bundle-Copyright>${project.name} (C) 2025 Christian Poulter</Bundle-Copyright>
             <Bundle-License>https://www.gnu.org/licenses/agpl-3.0.txt</Bundle-License>
-
-            <Embed-Dependency>jackson-core,jackson-databind,jackson-annotations</Embed-Dependency>
-            <Embed-Transitive>true</Embed-Transitive>
-            <_exportcontents>tools.jackson.databind.*,</_exportcontents>
-            <Import-Package>!tools.jackson.databind.*,*</Import-Package>
           </instructions>
         </configuration>
       </plugin>
