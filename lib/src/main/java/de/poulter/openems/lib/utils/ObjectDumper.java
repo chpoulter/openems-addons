@@ -14,6 +14,8 @@ public class ObjectDumper {
             .enable(tools.jackson.databind.SerializationFeature.INDENT_OUTPUT)
             .build();
 
+    private ObjectDumper() {}
+
     public static <T> String objectToJsonString(T object) {
         if (object == null) {
             return null;

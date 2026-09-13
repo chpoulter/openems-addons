@@ -31,6 +31,8 @@ import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.user.User;
 import io.openems.edge.controller.api.Controller;
 
+///daten/Projekte/openems/openems/io.openems.edge.controller.api.mqtt/src/io/openems/edge/controller/api/mqtt/
+
 @Designate(ocd = Config.class, factory = true)
 @Component(
     name = "Controller.Api.WritableMQTT",
